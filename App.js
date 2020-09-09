@@ -1,24 +1,10 @@
 import React, { useState } from "react";
-import { createStore, combineReducers, applyMiddleware } from "redux";
 import { Provider } from "react-redux";
 import { AppLoading } from "expo";
 import * as Font from "expo-font";
-import ReduxThunk from "redux-thunk";
-
-import productsReducer from "./store/reducers/products";
-import cartReducer from "./store/reducers/cart";
-import ordersReducer from "./store/reducers/orders";
-import authReducer from "./store/reducers/auth";
+import { Platform, Text } from 'react-native';
+import { store } from "./store";
 import NavigationContainer from "./navigation/NavigationContainer";
-
-const rootReducer = combineReducers({
-  products: productsReducer,
-  cart: cartReducer,
-  orders: ordersReducer,
-  auth: authReducer
-});
-
-const store = createStore(rootReducer, applyMiddleware(ReduxThunk));
 
 const fetchFonts = () => {
   return Font.loadAsync({
@@ -26,6 +12,22 @@ const fetchFonts = () => {
     "open-sans-bold": require("./assets/fonts/OpenSans-Bold.ttf")
   });
 };
+
+export function fixOppoTextCutOff() {
+  if (Platform.OS !== 'android') {
+    return
+  }
+
+  const oldRender = Text.render
+  Text.render = function (...args) {
+    const origin = oldRender.call(this, ...args);
+    return React.cloneElement(origin, {
+      style: [{ fontFamily: 'Roboto' }, origin.props.style]
+    })
+  }
+}
+
+fixOppoTextCutOff();
 
 export default function App() {
   const [fontLoaded, setFontLoaded] = useState(false);

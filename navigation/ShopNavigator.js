@@ -19,6 +19,8 @@ import EditProductScreen from "../screens/user/EditProductScreen";
 import AuthScreen from "../screens/user/AuthScreen";
 import StartupScreen from "../screens/StartupScreen";
 import * as authActions from "../store/actions/auth";
+import { store } from "../store";
+const { userId } = store.getState().auth;
 
 const defaultNavOptions = {
   headerStyle: {
@@ -81,12 +83,17 @@ const AdminNavigator = createStackNavigator(
   }
 );
 
+const nativationOptions = {
+  Products: ProductsNavigator,
+  Orders: OrdersNavigator
+};
+
+if (userId === "UReAmchbz7bKY6O9e1rANRJstG42") {
+  nativationOptions.Admin = AdminNavigator
+}
+
 const ShopNavigator = createDrawerNavigator(
-  {
-    Products: ProductsNavigator,
-    Orders: OrdersNavigator,
-    Admin: AdminNavigator
-  },
+  nativationOptions,
   {
     contentOptions: { activeTintColor: Colors.primary },
     contentComponent: props => {
@@ -96,7 +103,7 @@ const ShopNavigator = createDrawerNavigator(
           <SafeAreaView forceInset={{ top: "always", horizontal: "never" }}>
             <DrawerNavigatorItems {...props} />
             <Button
-              title="Logout"
+              title={"Logout"+userId}
               color={Colors.primary}
               onPress={() => {
                 dispatch(authActions.logout());

@@ -1,4 +1,4 @@
 export default {
-  url: "https://xxxxxxxxxxxxxxxxx.firebaseio.com/",
-  key: "xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+  url: "https://rn-shopping-1e646.firebaseio.com/",
+  key: "AIzaSyACiGyi2-45QLTmBrtSMsEgrCeJ5NNupgc"
 };
