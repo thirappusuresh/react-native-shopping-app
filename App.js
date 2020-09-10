@@ -5,6 +5,10 @@ import * as Font from "expo-font";
 import { Platform, Text } from 'react-native';
 import { store } from "./store";
 import NavigationContainer from "./navigation/NavigationContainer";
+import Icon from 'react-native-vector-icons/FontAwesome';
+import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+Icon.loadFont()
+MaterialIcon.loadFont()
 
 const fetchFonts = () => {
   return Font.loadAsync({

@@ -6,7 +6,6 @@ import {
   AsyncStorage
 } from "react-native";
 import { useDispatch } from "react-redux";
-
 import Colors from "../constants/Colors";
 import * as authActions from "../store/actions/auth";
 
