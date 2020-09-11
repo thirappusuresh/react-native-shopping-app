@@ -119,7 +119,12 @@ const ShopNavigator = createDrawerNavigator(
 
 const AuthNavigator = createStackNavigator(
   { Auth: AuthScreen },
-  { defaultNavigationOptions: defaultNavOptions }
+  {
+    headerMode: 'none',
+    navigationOptions: {
+      headerVisible: false,
+    }
+   }
 );
 
 const MainNavigator = createSwitchNavigator({

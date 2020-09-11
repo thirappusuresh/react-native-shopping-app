@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 import { useSelector } from "react-redux";
 import { NavigationActions } from "react-navigation";
-
+import { View, Platform } from 'react-native';
 import ShopNavigator from "./ShopNavigator";
 
 const NavigationContainer = props => {
@@ -14,7 +14,9 @@ const NavigationContainer = props => {
       );
     }
   }, [isAuth]);
-  return <ShopNavigator ref={navRef} />;
+  return <View style={{ flex: 1 }}>
+    <ShopNavigator ref={navRef} />
+  </View>;
 };
 
 export default NavigationContainer;

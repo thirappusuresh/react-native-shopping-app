@@ -10,13 +10,13 @@ import {
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { HeaderButtons, Item } from "react-navigation-header-buttons";
-
+import RoundButton from '../../components/Base/RoundButton';
 import Colors from "../../constants/Colors";
 import ProductItem from "../../components/shop/ProductItem";
 import * as cartActions from "../../store/actions/cart";
 import * as productsActions from "../../store/actions/products";
 import HeaderButton from "../../components/UI/HeaderButton";
-
+import CategoryList from "./CategoryList";
 const ProductsOverviewScreen = props => {
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -87,37 +87,42 @@ const ProductsOverviewScreen = props => {
     );
   }
   return (
-    <FlatList
-      onRefresh={loadProducts}
-      refreshing={isRefreshing}
-      data={products}
-      keyExtractor={item => item.id}
-      renderItem={itemData => (
-        <ProductItem
-          image={itemData.item.imageUrl}
-          title={itemData.item.title}
-          price={itemData.item.price}
-          onSelect={() => {
-            selectItemHandler(itemData.item.id, itemData.item.title);
-          }}
-        >
-          <Button
-            color={Colors.primary}
-            title="View details"
-            onPress={() => {
+    <View>
+      <View style={styles.typeList}>
+        <CategoryList />
+      </View>
+      <FlatList
+        onRefresh={loadProducts}
+        refreshing={isRefreshing}
+        data={products}
+        keyExtractor={item => item.id}
+        renderItem={itemData => (
+          <ProductItem
+            image={itemData.item.imageUrl}
+            title={itemData.item.title}
+            price={itemData.item.price}
+            onSelect={() => {
               selectItemHandler(itemData.item.id, itemData.item.title);
             }}
-          />
-          <Button
-            color={Colors.primary}
-            title="Add to Cart"
-            onPress={() => {
-              dispatch(cartActions.addToCart(itemData.item));
-            }}
-          />
-        </ProductItem>
-      )}
-    />
+          >
+            <RoundButton
+              color={Colors.primary}
+              label="View details"
+              onPress={() => {
+                selectItemHandler(itemData.item.id, itemData.item.title);
+              }}
+            />
+            <RoundButton
+              color={Colors.primary}
+              label="Add to Cart"
+              onPress={() => {
+                dispatch(cartActions.addToCart(itemData.item));
+              }}
+            />
+          </ProductItem>
+        )}
+      />
+    </View>
   );
 };
 
@@ -150,7 +155,12 @@ ProductsOverviewScreen.navigationOptions = navData => {
 };
 
 const styles = StyleSheet.create({
-  centered: { flex: 1, justifyContent: "center", alignItems: "center" }
+  centered: { flex: 1, justifyContent: "center", alignItems: "center" },
+  typeList: {
+    flex: 1.5,
+    paddingLeft: 12,
+    paddingRight: 12,
+  },
 });
 
 export default ProductsOverviewScreen;
