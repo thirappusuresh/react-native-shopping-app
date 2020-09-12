@@ -87,10 +87,8 @@ const ProductsOverviewScreen = props => {
     );
   }
   return (
-    <View>
-      <View style={styles.typeList}>
-        <CategoryList />
-      </View>
+    <View style={styles.productsView}>
+      <CategoryList />
       <FlatList
         onRefresh={loadProducts}
         refreshing={isRefreshing}
@@ -128,7 +126,7 @@ const ProductsOverviewScreen = props => {
 
 ProductsOverviewScreen.navigationOptions = navData => {
   return {
-    headerTitle: "All Products",
+    headerTitle: "Products",
     headerLeft: (
       <HeaderButtons HeaderButtonComponent={HeaderButton}>
         <Item
@@ -156,11 +154,9 @@ ProductsOverviewScreen.navigationOptions = navData => {
 
 const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
-  typeList: {
-    flex: 1.5,
-    paddingLeft: 12,
-    paddingRight: 12,
-  },
+  productsView: {
+    flex: 1
+  }
 });
 
 export default ProductsOverviewScreen;

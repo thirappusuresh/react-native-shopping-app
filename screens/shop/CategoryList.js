@@ -3,19 +3,21 @@ import { ScrollView, StyleSheet, View, Text } from 'react-native';
 import RoundButton from '../../components/Base/RoundButton';
 import useConstants from '../../hooks/useConstants';
 import useTheme from "../../hooks/useTheme";
-const typeList = ["Woman", "Man", "Kids"]
+const typeList = ["All", "Milk", "Dairy products", "Daily needs", "Ready to cook", "Snacks & Sweets"]
+import Colors from "../../constants/Colors";
 
 const CategoryList = () => {
-    const constants= useConstants();
+    const constants = useConstants();
     const theme = useTheme();
 
     return (
         <View style={style.container}>
-            <Text>hello</Text>
-            <ScrollView style={style.typeList} horizontal={true} showsHorizontalScrollIndicator={false}>
-            <Text>helloo</Text>
+            <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
                 {typeList.map((res, index) => {
-                    return <RoundButton key={index} buttonStyle={[style.typeListTab, { backgroundColor: theme.appColor, borderColor: theme.appColor }]} labelStyle={{ fontSize: 17, color: theme.highlightTextColor }} label={res} onPress={() => {alert(res)}} />
+                    return <Text key={index} style={[style.categoryItem, index === 0 ? {
+                        borderBottomColor: Colors.primary,
+                        borderBottomWidth: 2,
+                    } : {}]} onPress={() => { alert(res) }} >{res}</Text>
                 })}
             </ScrollView>
         </View>
@@ -24,14 +26,22 @@ const CategoryList = () => {
 
 const style = StyleSheet.create({
     container: {
-        flex: 1.5,
         flexDirection: 'row',
         justifyContent: 'center',
         alignItems: "center",
+        paddingLeft: 20,
+        paddingRight: 20,
+        shadowColor: "black",
+        shadowOpacity: 0.26,
+        shadowOffset: { width: 0, height: 2 },
+        elevation: 5,
+        backgroundColor: "white"
     },
-    typeList: {
-        paddingTop: 10,
-        paddingBottom: 10,
+    categoryItem: {
+        color: Colors.primary,
+        fontWeight: "bold",
+        padding: 10,
+        fontSize: 16
     },
     typeListTab: {
         minWidth: 120,
