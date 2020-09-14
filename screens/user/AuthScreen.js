@@ -1,7 +1,7 @@
-import React, { useCallback, useEffect, useReducer, useState } from "react";
+import React, { useCallback, useEffect, useReducer, useState, useRef } from "react";
 import {
   Alert,
-  ActivityIndicator, StatusBar,
+  ActivityIndicator, StatusBar, Text, TextInput,
   ImageBackground, ScrollView, StyleSheet, Platform, TouchableOpacity, View
 } from "react-native";
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
@@ -13,6 +13,8 @@ import useConstants from '../../hooks/useConstants';
 import useLanguage from '../../hooks/useLanguage';
 import useTheme from '../../hooks/useTheme';
 import * as authActions from "../../store/actions/auth";
+import { firebase } from "../../firebase";
+import { FirebaseRecaptchaVerifierModal } from "expo-firebase-recaptcha";
 
 const FORM_INPUT_UPDATE = "FORM_INPUT_UPDATE";
 const ImagePath = require("../../images/Recraftsoppify_aap_bg_effect.png");
@@ -91,6 +93,11 @@ const AuthScreen = props => {
     }
   };
 
+  const updateLoginDetails = async (userId, token) => {
+    dispatch(authActions.updateLogin(userId, token));
+    props.navigation.navigate("Shop");
+  }
+
   const inputChangeHandler = useCallback(
     (inputIdentifier, inputValue, inputValidity) => {
       dispatchFormState({
@@ -103,6 +110,16 @@ const AuthScreen = props => {
     [dispatchFormState]
   );
 
+  const recaptchaVerifier = useRef(null);
+  const [phoneNumber, setPhoneNumber] = useState();
+  const [verificationId, setVerificationId] = useState();
+  const [verificationCode, setVerificationCode] = useState();
+  const [isVerifyCode, setVerifyCode] = useState(false);
+  const firebaseConfig = firebase.apps.length ? firebase.app().options : undefined;
+  const [message, showMessage] = useState((!firebaseConfig || Platform.OS === 'web')
+    ? { text: "To get started, provide a valid firebase config in App.js and open this snack on an iOS or Android device." }
+    : undefined);
+
   return (
     <View style={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
       <ImageBackground source={ImagePath} style={{ width: '100%', height: '100%' }} >
@@ -114,110 +131,102 @@ const AuthScreen = props => {
             <View style={styles.topContainer}>
               <ThemedText styleKey="appColor" style={styles.title}>{isSignup ? "Sign Up" : "Login"}</ThemedText>
             </View>
-            <View style={styles.childContainer}>
-              <Input
-                id="email"
-                label="E-mail"
-                keyboardType="email-address"
-                required
-                email
-                autoCapitalize="none"
-                errorText="Please enter a valid email address"
-                onInputChange={inputChangeHandler}
-                initialValue=""
-                style={[styles.inputContainer, { borderBottomColor: theme.inputBorderColor, color: theme.textColor }]}
-                placeholderTextColor={theme.lightTextColor}
-                placeholder={language.userPlaceholder}
-              />
-            </View>
-            <View style={styles.childContainer}>
-              <Input
-                id="password"
-                label="Password"
-                keyboardType="default"
-                secureTextEntry
-                required
-                minLength={5}
-                autoCapitalize="none"
-                errorText="Please enter a valid password"
-                onInputChange={inputChangeHandler}
-                initialValue=""
-                style={[styles.inputContainer, { borderBottomColor: theme.inputBorderColor, color: theme.textColor }]}
-                placeholderTextColor={theme.lightTextColor}
-                placeholder={language.passPlaceholder}
-                secureTextEntry={true}
-              />
-            </View>
-            <View style={styles.childContainer}>
-              <ThemedText style={styles.forgotPassword} styleKey="textColor" onPress={() => { alert("ji") }}>{language.labelForget}</ThemedText>
-            </View>
-            {isLoading ? (
-              <ActivityIndicator size="small" color={theme.appColor} />
-            ) : (
-                <RoundButton label={isSignup ? "Sign Up" : "Login"} buttonStyle={{ minWidth: 230 }} onPress={authHandler} />
-              )}
+            {!isVerifyCode ? <><FirebaseRecaptchaVerifierModal
+              ref={recaptchaVerifier}
+              firebaseConfig={firebaseConfig}
+            />
+              <View style={styles.formControl}>
+                <View style={styles.childContainer}>
+                  <ThemedText style={styles.inputLabel} styleKey="inputColor">Enter Phone Number</ThemedText>
+                </View>
+                <TextInput
+                  value={formState.inputValues.email}
+                  onChangeText={(val) => inputChangeHandler("email", val, true)}
+                  placeholderTextColor={theme.lightTextColor}
+                  placeholder={"Phone Number"}
+                  style={[styles.inputContainer, { borderBottomColor: theme.inputBorderColor, color: theme.textColor }]}
+                />
+              </View>
+              {isLoading ? (
+                <ActivityIndicator size="small" color={theme.appColor} />
+              ) : (
+                  <RoundButton label={"Send Verification Code"} buttonStyle={{ opacity: formState.inputValues.email ? 1 : 0.5 }} onPress={async () => {
+                    // The FirebaseRecaptchaVerifierModal ref implements the
+                    // FirebaseAuthApplicationVerifier interface and can be
+                    // passed directly to `verifyPhoneNumber`.
+                    if (formState.inputValues.email) {
+                      setIsLoading(true);
+                      try {
+                        const phoneProvider = new firebase.auth.PhoneAuthProvider();
+                        const verificationId = await phoneProvider.verifyPhoneNumber(
+                          "+91" + formState.inputValues.email,
+                          recaptchaVerifier.current
+                        );
+                        setVerificationId(verificationId);
+                        setVerifyCode(true);
+                        inputChangeHandler("password", "", true);
+                        setIsLoading(false);
+                      } catch (err) {
+                        showMessage({ text: `Error: ${err.message}`, color: "red" });
+                        setIsLoading(false);
+                      }
+                    }
+                  }} />)}
+            </>
+              :
+              <>
+                <Text style={{ color: theme.appColor, paddingBottom: 20 }} onPress={() => setVerifyCode(false)}>Verification code has been sent to your phone number: {formState.inputValues.email}. Click here to change the number</Text>
+                <View style={styles.formControl}>
+                  <View style={styles.childContainer}>
+                    <ThemedText style={styles.inputLabel} styleKey="inputColor">Enter Verification Code</ThemedText>
+                  </View>
+                  <TextInput
+                    value={formState.inputValues.password}
+                    onChangeText={(val) => inputChangeHandler("password", val, true)}
+                    placeholderTextColor={theme.lightTextColor}
+                    placeholder={"Verification Code"}
+                    style={[styles.inputContainer, { borderBottomColor: theme.inputBorderColor, color: theme.textColor }]}
+                  />
+                </View>
+                {isLoading ? (
+                  <ActivityIndicator size="small" color={theme.appColor} />
+                ) : (
+                    <RoundButton label={"Confirm Verification Code"}
+                      buttonStyle={{ opacity: formState.inputValues.password.length > 5 ? 1 : 0.5 }}
+                      onPress={async () => {
+                        if (formState.inputValues.password.length > 5) {
+                          setIsLoading(true);
+                          try {
+                            const credential = firebase.auth.PhoneAuthProvider.credential(
+                              verificationId,
+                              formState.inputValues.password
+                            );
+                            let res = await firebase.auth().signInWithCredential(credential);
+                            setIsLoading(false);
+                            let accessToken = await res.user.getIdToken();
+                            updateLoginDetails(res.user.uid, accessToken);
+                          } catch (err) {
+                            showMessage({ text: `Error: ${err.message}`, color: "red" });
+                            setIsLoading(false);
+                          }
+                        }
+                      }} />
+                  )}
+              </>
+            }
           </View>
-          <RoundButton label={`Switch to ${isSignup ? "Login" : "Sign Up"}`} buttonStyle={{ minWidth: 230 }} onPress={() => {
-            setIsSignup(prevState => !prevState);
-          }} />
+          {message ? (
+            <TouchableOpacity
+              style={[StyleSheet.absoluteFill, { backgroundColor: 0xffffffee, justifyContent: "center" }]}
+              onPress={() => showMessage(undefined)}>
+              <Text style={{ color: message.color || "blue", fontSize: 17, textAlign: "center", margin: 20, }}>
+                {message.text}
+              </Text>
+            </TouchableOpacity>
+          ) : undefined}
         </ScrollView>
       </ImageBackground >
     </View>
-    //   <KeyboardAvoidingView
-    //     behavior="padding"
-    //     keyboardVerticalOffset={50}
-    //     style={styles.screen}
-    //   >
-    //     <LinearGradient colors={["#012D4D", "#027FD9"]} style={styles.gradient}>
-    //       <Card style={styles.authContainer}>
-    //         <ScrollView>
-    //           <Input
-    //             id="email"
-    //             label="E-mail"
-    //             keyboardType="email-address"
-    //             required
-    //             email
-    //             autoCapitalize="none"
-    //             errorText="Please enter a valid email address"
-    //             onInputChange={inputChangeHandler}
-    //             initialValue=""
-    //           />
-    //           <Input
-    //             id="password"
-    //             label="Password"
-    //             keyboardType="default"
-    //             secureTextEntry
-    //             required
-    //             minLength={5}
-    //             autoCapitalize="none"
-    //             errorText="Please enter a valid password"
-    //             onInputChange={inputChangeHandler}
-    //             initialValue=""
-    //           />
-    //           <View style={styles.buttonContainer}>
-    //             {isLoading ? (
-    //               <ActivityIndicator size="small" color={Colors.primary} />
-    //             ) : (
-    //               <Button
-    //                 title={isSignup ? "Sign Up" : "Login"}
-    //                 color={Colors.accent}
-    //                 onPress={authHandler}
-    //               />
-    //             )}
-    //           </View>
-    //           <View style={styles.buttonContainer}>
-    //             <Button
-    //               title={`Switch to ${isSignup ? "Login" : "Sign Up"}`}
-    //               color={Colors.primary}
-    //               onPress={() => {
-    //                 setIsSignup(prevState => !prevState);
-    //               }}
-    //             />
-    //           </View>
-    //         </ScrollView>
-    //       </Card>
-    //     </LinearGradient>
-    //   </KeyboardAvoidingView>
   );
 };
 
@@ -228,6 +237,23 @@ AuthScreen.navigationOptions = {
 const styles = StyleSheet.create({
   screen: {
     flex: 1
+  },
+  formControl: {
+    width: "100%"
+  },
+  input: {
+    paddingHorizontal: 2,
+    paddingVertical: 5,
+    borderBottomColor: "#ccc",
+    borderBottomWidth: 1
+  },
+  inputLabel: {
+    width: "100%",
+    fontSize: 13
+  },
+  childContainer: {
+    flexDirection: 'row',
+    justifyContent: "center",
   },
   gradient: {
     flex: 1,

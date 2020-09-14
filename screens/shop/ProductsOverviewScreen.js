@@ -17,6 +17,8 @@ import * as cartActions from "../../store/actions/cart";
 import * as productsActions from "../../store/actions/products";
 import HeaderButton from "../../components/UI/HeaderButton";
 import CategoryList from "./CategoryList";
+import CartIcon from './CartIcon';
+
 const ProductsOverviewScreen = props => {
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -139,15 +141,7 @@ ProductsOverviewScreen.navigationOptions = navData => {
       </HeaderButtons>
     ),
     headerRight: (
-      <HeaderButtons HeaderButtonComponent={HeaderButton}>
-        <Item
-          title="Cart"
-          iconName={Platform.OS === "android" ? "md-cart" : "ios-cart"}
-          onPress={() => {
-            navData.navigation.navigate("Cart");
-          }}
-        />
-      </HeaderButtons>
+      <CartIcon props={navData} />
     )
   };
 };

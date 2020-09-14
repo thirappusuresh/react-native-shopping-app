@@ -53,6 +53,22 @@ export const signup = (email, password) => {
   };
 };
 
+export const updateLogin = (userId, token, expiresIn = 100000) => {
+  return async dispatch => {
+    dispatch(
+      authenticate(
+        userId,
+        token,
+        parseInt(expiresIn) * 1000
+      )
+    );
+    const expirationDate = new Date(
+      new Date().getTime() + parseInt(expiresIn) * 1000
+    );
+    saveDataToStorage(token, userId, expirationDate);
+  }
+}
+
 export const login = (email, password) => {
   return async dispatch => {
     const response = await fetch(
