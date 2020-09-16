@@ -88,9 +88,9 @@ const nativationOptions = {
   Orders: OrdersNavigator
 };
 
-if (userId === "UReAmchbz7bKY6O9e1rANRJstG42") {
+//if (userId === "UReAmchbz7bKY6O9e1rANRJstG42") {
   nativationOptions.Admin = AdminNavigator
-}
+//}
 
 const ShopNavigator = createDrawerNavigator(
   nativationOptions,
@@ -103,7 +103,7 @@ const ShopNavigator = createDrawerNavigator(
           <SafeAreaView forceInset={{ top: "always", horizontal: "never" }}>
             <DrawerNavigatorItems {...props} />
             <Button
-              title={"Logout"+userId}
+              title={"Logout"}
               color={Colors.primary}
               onPress={() => {
                 dispatch(authActions.logout());

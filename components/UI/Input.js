@@ -1,6 +1,7 @@
 import React, { useReducer, useEffect } from "react";
 import { StyleSheet, Text, TextInput, View } from "react-native";
 import ThemedText from './ThemedText';
+import useTheme from '../../hooks/useTheme';
 
 const INPUT_CHANGE = "INPUT_CHANGE";
 const INPUT_BLUR = "INPUT_BLUR";
@@ -29,13 +30,13 @@ const Input = props => {
     isValid: props.initiallyValid,
     touched: false
   });
-
+  const theme = useTheme();
   const { onInputChange, id } = props;
 
   useEffect(() => {
-    if (inputState.touched) {
+    //if (inputState.touched) {
       onInputChange(id, inputState.value, inputState.isValid);
-    }
+    //}
   }, [inputState, onInputChange, id]);
 
   const textChangeHandler = text => {
@@ -75,6 +76,7 @@ const Input = props => {
         value={inputState.value}
         onChangeText={textChangeHandler}
         onBlur={lostFocusHandler}
+        style={[styles.inputContainer, { borderBottomColor: theme.inputBorderColor, color: theme.textColor }]}
       />
       {!inputState.isValid && inputState.touched && (
         <View style={styles.errorContainer}>
@@ -88,6 +90,14 @@ const Input = props => {
 const styles = StyleSheet.create({
   formControl: {
     width: "100%"
+  },
+  inputContainer: {
+    height: 40,
+    marginTop: 10,
+    width: "100%",
+    marginBottom: 15,
+    borderBottomWidth: 2,
+    fontSize: 16,
   },
   inputLabel: {
     width: "100%",

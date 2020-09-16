@@ -11,12 +11,11 @@ interface Props {
     color: string,
 };
 
-// @ts-ignore
-const ImagePath = require("../../images/shopping.jpg")
-
 const BagItem: React.FunctionComponent<Props> = ({
     size,
-    color
+    color,
+    item,
+    onRemove
   }: Props) => {
     const constants: AppConstants = useConstants();
     const theme: AppTheme = useTheme();
@@ -25,49 +24,25 @@ const BagItem: React.FunctionComponent<Props> = ({
         <>
           <View style={[style.container, {paddingTop: 20}]}>
             <View style={[style.childContainer, style.leftContainer]}>
-              <Image source={ImagePath} style={style.imageStyle}/>
+              <Image style={style.imageStyle} source={{ uri: item.productImage }} />
             </View>
             <View style={[style.childContainer, style.rightContainer, style.extraStyle, {justifyContent: "flex-start"}]}>
               <View style={[style.container, {paddingRight: 0}]}>
                 <View style={[style.childContainer, style.leftContainer, style.extraStyle]}>
-                  <ThemedText styleKey="textColor" style={style.content}>Top Heavy Bag</ThemedText>
+    <ThemedText styleKey="textColor" style={style.content}>{item.productTitle}</ThemedText>
                 </View>
                 <View style={[style.childContainer, style.rightContainer ,{flex: 1}]}>
-                  <TouchableOpacity>
+                  <TouchableOpacity onPress={() => onRemove()}>
                     <MaterialIcon name="trash-can-outline" size={20} color={theme.lightTextColor} />
                   </TouchableOpacity>
                 </View>
               </View>
-              <View style={[style.container, {paddingTop: 20}]}>
-                <View style={[style.childContainer, style.leftContainer ,{flex: 1, }]}>
-                  <ThemedText styleKey="lightTextColor" style={[style.content]}>Size</ThemedText>
-                </View>
-                <View style={[style.childContainer, style.leftContainer ,{flex: 1, }]}>
-                  <ThemedText styleKey="lightTextColor" style={[style.content]}>Color</ThemedText>
-                </View>
-                <View style={[style.childContainer, style.leftContainer ,{flex: 1, }]}>
-                  <ThemedText styleKey="lightTextColor" style={[style.content]}>Qty</ThemedText>
-                </View>
-              </View>
               <View style={style.container}>
                 <View style={[style.childContainer, style.leftContainer ,{flex: 1, }]}>
-                  <ThemedText styleKey="textColor" style={[style.content, { paddingLeft: 7}]}>{size}</ThemedText>
+                  <ThemedText styleKey="textColor" style={[style.content, { paddingLeft: 7}]}>Quantity: {item.quantity}</ThemedText>
                 </View>
                 <View style={[style.childContainer, style.leftContainer ,{flex: 1, }]}>
-                  <MaterialIcon name="circle" size={15} color={color} style={{paddingLeft: 10}}/>
-                </View>
-                <View style={[style.childContainer, style.leftContainer ,{flex: 1, }]}>
-                  <ThemedText styleKey="textColor" style={[style.content, { paddingLeft: 7}]}>1</ThemedText>
-                </View>
-              </View>
-              <View style={[style.container, {paddingTop: 20, paddingRight: 0}]}>
-                <View style={[style.childContainer, style.rightContainer, style.extraStyle]}>
-                  <ThemedText styleKey="lightTextColor" style={[style.strike]}>$20.90</ThemedText>
-                </View>
-              </View>
-              <View style={[style.container, {paddingRight: 0}]}>
-                <View style={[style.childContainer, style.rightContainer, style.extraStyle]}>
-                  <ThemedText styleKey="textColor" style={style.content}>$12.99</ThemedText>
+    <ThemedText styleKey="textColor" style={[style.content, { paddingLeft: 7}]}>{item.productPrice}</ThemedText>
                 </View>
               </View>
             </View>

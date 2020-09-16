@@ -8,7 +8,7 @@ import {
   ActivityIndicator
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
-
+import BagItem from '../../components/Base/BagItem';
 import Colors from "../../constants/Colors";
 import CartItem from "../../components/shop/CartItem";
 import * as cartActions from "../../store/actions/cart";
@@ -28,7 +28,8 @@ const CartScreen = props => {
         productTitle: state.cart.items[key].productTitle,
         productPrice: state.cart.items[key].productPrice,
         quantity: state.cart.items[key].quantity,
-        sum: state.cart.items[key].sum
+        sum: state.cart.items[key].sum,
+        productImage: state.cart.items[key].productImage
       });
     }
     return transformedCartItems.sort((a, b) =>
@@ -55,27 +56,30 @@ const CartScreen = props => {
         {isLoading ? (
           <ActivityIndicator size="small" color={Colors.primary} />
         ) : (
-          <Button
-            color={Colors.accent}
-            title="Order now"
-            disabled={cartItems.length === 0}
-            onPress={sendOrderHandler}
-          />
-        )}
+            <Button
+              color={Colors.accent}
+              title="Order now"
+              disabled={cartItems.length === 0}
+              onPress={sendOrderHandler}
+            />
+          )}
       </Card>
       <FlatList
         data={cartItems}
         keyExtractor={item => item.productId}
         renderItem={itemData => (
-          <CartItem
-            quantity={itemData.item.quantity}
-            title={itemData.item.productTitle}
-            amount={itemData.item.sum}
-            deletable
-            onRemove={() => {
-              dispatch(cartActions.removeFromCart(itemData.item.productId));
-            }}
-          />
+          <BagItem item={itemData.item} onRemove={() => {
+            dispatch(cartActions.removeFromCart(itemData.item.productId));
+          }} />
+          // <CartItem
+          //   quantity={itemData.item.quantity}
+          //   title={itemData.item.productTitle}
+          //   amount={itemData.item.sum}
+          //   deletable
+          //   onRemove={() => {
+          //     dispatch(cartActions.removeFromCart(itemData.item.productId));
+          //   }}
+          // />
         )}
       />
     </View>
@@ -83,7 +87,7 @@ const CartScreen = props => {
 };
 
 CartScreen.navigationOptions = {
-  headerTitle: "Your Cart"
+  headerTitle: "My Cart"
 };
 
 const styles = StyleSheet.create({

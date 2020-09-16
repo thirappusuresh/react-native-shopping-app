@@ -10,7 +10,7 @@ import {
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { HeaderButtons, Item } from "react-navigation-header-buttons";
-
+import RoundButton from '../../components/Base/RoundButton';
 import HeaderButton from "../../components/UI/HeaderButton";
 import ProductItem from "../../components/shop/ProductItem";
 import Colors from "../../constants/Colors";
@@ -49,6 +49,8 @@ const UserProductsScreen = props => {
     <FlatList
       data={userProducts}
       keyExtractor={item => item.id}
+      columnWrapperStyle={styles.row}
+      numColumns={2}
       renderItem={itemData => (
         <ProductItem
           image={itemData.item.imageUrl}
@@ -58,20 +60,26 @@ const UserProductsScreen = props => {
             editProductHandler(itemData.item.id);
           }}
         >
-          <Button
-            color={Colors.primary}
-            title="Edit"
-            onPress={() => {
-              editProductHandler(itemData.item.id);
-            }}
-          />
-          <Button
-            color={Colors.primary}
-            title="Delete"
-            onPress={() => {
-              deleteHandler(itemData.item.id);
-            }}
-          />
+          <View style={{
+            flexDirection: "row",
+            justifyContent: "space-between",
+            width: "85%"
+          }}>
+            <RoundButton
+              color={Colors.primary}
+              label="Edit"
+              onPress={() => {
+                editProductHandler(itemData.item.id);
+              }}
+            />
+            <RoundButton
+              color={Colors.primary}
+              label="Delete"
+              onPress={() => {
+                deleteHandler(itemData.item.id);
+              }}
+            />
+          </View>
         </ProductItem>
       )}
     />
@@ -111,6 +119,10 @@ const styles = StyleSheet.create({
     flex: 1,
     justifyContent: "center",
     alignItems: "center"
+  },
+  row: {
+    flex: 1,
+    justifyContent: "space-evenly"
   }
 });
 

@@ -15,6 +15,7 @@ import useTheme from '../../hooks/useTheme';
 import * as authActions from "../../store/actions/auth";
 import { firebase } from "../../firebase";
 import { FirebaseRecaptchaVerifierModal } from "expo-firebase-recaptcha";
+import OTPTextView from 'react-native-otp-textinput';
 
 const FORM_INPUT_UPDATE = "FORM_INPUT_UPDATE";
 const ImagePath = require("../../images/Recraftsoppify_aap_bg_effect.png");
@@ -93,9 +94,24 @@ const AuthScreen = props => {
     }
   };
 
-  const updateLoginDetails = async (userId, token) => {
-    dispatch(authActions.updateLogin(userId, token));
-    props.navigation.navigate("Shop");
+  const verifyOtp = async () => {
+    if (formState.inputValues.password.length > 5) {
+      setIsLoading(true);
+      try {
+        const credential = firebase.auth.PhoneAuthProvider.credential(
+          verificationId,
+          formState.inputValues.password
+        );
+        let res = await firebase.auth().signInWithCredential(credential);
+        let accessToken = await res.user.getIdToken();
+        dispatch(authActions.updateLogin(res.user.uid, accessToken));
+        props.navigation.navigate("Shop");
+        setIsLoading(false);
+      } catch (err) {
+        setOtpError(true);
+        setIsLoading(false);
+      }
+    }
   }
 
   const inputChangeHandler = useCallback(
@@ -110,6 +126,7 @@ const AuthScreen = props => {
     [dispatchFormState]
   );
 
+  const [otpError, setOtpError] = useState(false);
   const recaptchaVerifier = useRef(null);
   const [phoneNumber, setPhoneNumber] = useState();
   const [verificationId, setVerificationId] = useState();
@@ -123,13 +140,10 @@ const AuthScreen = props => {
   return (
     <View style={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
       <ImageBackground source={ImagePath} style={{ width: '100%', height: '100%' }} >
-        <TouchableOpacity onPress={() => { }}>
-          <MaterialIcon name="arrow-left" size={30} color={theme.textColor} style={styles.backIcon} />
-        </TouchableOpacity>
         <ScrollView keyboardDismissMode='on-drag' keyboardShouldPersistTaps='always'>
           <View style={styles.container}>
             <View style={styles.topContainer}>
-              <ThemedText styleKey="appColor" style={styles.title}>{isSignup ? "Sign Up" : "Login"}</ThemedText>
+              <ThemedText styleKey="appColor" style={styles.title}>{isVerifyCode ? "Verify Your Phone" : "Login"}</ThemedText>
             </View>
             {!isVerifyCode ? <><FirebaseRecaptchaVerifierModal
               ref={recaptchaVerifier}
@@ -137,24 +151,28 @@ const AuthScreen = props => {
             />
               <View style={styles.formControl}>
                 <View style={styles.childContainer}>
-                  <ThemedText style={styles.inputLabel} styleKey="inputColor">Enter Phone Number</ThemedText>
+                  <ThemedText style={styles.inputLabel} styleKey="inputColor">Enter Mobile Number</ThemedText>
                 </View>
                 <TextInput
                   value={formState.inputValues.email}
                   onChangeText={(val) => inputChangeHandler("email", val, true)}
                   placeholderTextColor={theme.lightTextColor}
-                  placeholder={"Phone Number"}
+                  placeholder={"Mobile Number"}
                   style={[styles.inputContainer, { borderBottomColor: theme.inputBorderColor, color: theme.textColor }]}
+                  keyboardType='numeric'
+                  maxLength={10}
                 />
               </View>
-              {isLoading ? (
+              {isLoading ? (<View>
+                <Text style={{ color: theme.appColor, paddingBottom: 20 }}>Waiting for OTP from server</Text>
                 <ActivityIndicator size="small" color={theme.appColor} />
+              </View>
               ) : (
-                  <RoundButton label={"Send Verification Code"} buttonStyle={{ opacity: formState.inputValues.email ? 1 : 0.5 }} onPress={async () => {
+                  <RoundButton label={"SEND OTP"} buttonStyle={{ opacity: formState.inputValues.email.length === 10 ? 1 : 0.5 }} onPress={async () => {
                     // The FirebaseRecaptchaVerifierModal ref implements the
                     // FirebaseAuthApplicationVerifier interface and can be
                     // passed directly to `verifyPhoneNumber`.
-                    if (formState.inputValues.email) {
+                    if (formState.inputValues.email.length === 10) {
                       setIsLoading(true);
                       try {
                         const phoneProvider = new firebase.auth.PhoneAuthProvider();
@@ -175,42 +193,43 @@ const AuthScreen = props => {
             </>
               :
               <>
-                <Text style={{ color: theme.appColor, paddingBottom: 20 }} onPress={() => setVerifyCode(false)}>Verification code has been sent to your phone number: {formState.inputValues.email}. Click here to change the number</Text>
+                <Text style={{ color: theme.appColor }}>Enter the OTP sent to your number</Text>
+                <View style={{
+                  paddingVertical: 15,
+                  paddingHorizontal: 10,
+                  flexDirection: "row",
+                  justifyContent: "space-between",
+                  alignItems: "center"
+                }}>
+                  <Text style={{
+                    fontSize: 16,
+                    color: "black"
+                  }}>{formState.inputValues.email}</Text>
+                  <TouchableOpacity style={{ marginLeft: 10 }} onPress={() => setVerifyCode(false)}>
+                    <MaterialIcon name="pencil" size={20} color={theme.appColor} />
+                  </TouchableOpacity>
+                </View>
                 <View style={styles.formControl}>
-                  <View style={styles.childContainer}>
-                    <ThemedText style={styles.inputLabel} styleKey="inputColor">Enter Verification Code</ThemedText>
-                  </View>
-                  <TextInput
-                    value={formState.inputValues.password}
-                    onChangeText={(val) => inputChangeHandler("password", val, true)}
-                    placeholderTextColor={theme.lightTextColor}
-                    placeholder={"Verification Code"}
-                    style={[styles.inputContainer, { borderBottomColor: theme.inputBorderColor, color: theme.textColor }]}
+                  <OTPTextView
+                    ref={(e) => (this.otpInput = e)}
+                    handleTextChange={(text) => inputChangeHandler("password", text, true)}
+                    inputCount={6}
+                    keyboardType="numeric"
+                    tintColor={theme.appColor}
                   />
                 </View>
                 {isLoading ? (
-                  <ActivityIndicator size="small" color={theme.appColor} />
+                  <View>
+                    <Text style={{ color: theme.appColor, paddingBottom: 20, marginTop: 20 }}>Verifying OTP...</Text>
+                    <ActivityIndicator size="small" color={theme.appColor} />
+                  </View>
                 ) : (
-                    <RoundButton label={"Confirm Verification Code"}
-                      buttonStyle={{ opacity: formState.inputValues.password.length > 5 ? 1 : 0.5 }}
-                      onPress={async () => {
-                        if (formState.inputValues.password.length > 5) {
-                          setIsLoading(true);
-                          try {
-                            const credential = firebase.auth.PhoneAuthProvider.credential(
-                              verificationId,
-                              formState.inputValues.password
-                            );
-                            let res = await firebase.auth().signInWithCredential(credential);
-                            setIsLoading(false);
-                            let accessToken = await res.user.getIdToken();
-                            updateLoginDetails(res.user.uid, accessToken);
-                          } catch (err) {
-                            showMessage({ text: `Error: ${err.message}`, color: "red" });
-                            setIsLoading(false);
-                          }
-                        }
-                      }} />
+                    <View>
+                      {otpError ? <Text style={{ color: theme.appColor, marginTop: 20 }}>Wrong OTP</Text> : undefined}
+                      <RoundButton label={"VERIFY"}
+                        buttonStyle={{ marginTop: 20, opacity: formState.inputValues.password.length > 5 ? 1 : 0.5 }}
+                        onPress={verifyOtp} />
+                    </View>
                   )}
               </>
             }

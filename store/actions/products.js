@@ -25,14 +25,15 @@ export const fetchProducts = () => {
             resData[key].title,
             resData[key].imageUrl,
             resData[key].description,
-            resData[key].price
+            resData[key].price,
+            resData[key].category,
           )
         );
       }
       dispatch({
         type: SET_PRODUCTS,
         products: loadedProducts,
-        userProducts: loadedProducts.filter(prod => prod.ownerId === userId)
+        userProducts: loadedProducts
       });
     } catch (error) {
       // send to custom analytics server
@@ -61,7 +62,7 @@ export const deleteProduct = productId => {
     });
   };
 };
-export const createProduct = (title, description, imageUrl, price) => {
+export const createProduct = (title, description, imageUrl, price, category) => {
   return async (dispatch, getState) => {
     // any async code wanted
     const token = getState().auth.token;
@@ -76,6 +77,7 @@ export const createProduct = (title, description, imageUrl, price) => {
           description,
           imageUrl,
           price,
+          category,
           ownerId: userId
         })
       }
@@ -90,12 +92,13 @@ export const createProduct = (title, description, imageUrl, price) => {
         description,
         imageUrl,
         price,
+        category,
         ownerId: userId
       }
     });
   };
 };
-export const updateProduct = (id, title, description, imageUrl) => {
+export const updateProduct = (id, title, description, imageUrl, price, category) => {
   return async (dispatch, getState) => {
     const token = getState().auth.token;
     const response = await fetch(
@@ -103,7 +106,7 @@ export const updateProduct = (id, title, description, imageUrl) => {
       {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description, imageUrl })
+        body: JSON.stringify({ title, description, imageUrl, price, category })
       }
     );
 
@@ -114,7 +117,7 @@ export const updateProduct = (id, title, description, imageUrl) => {
     dispatch({
       type: UPDATE_PRODUCT,
       pid: id,
-      productData: { title, description, imageUrl }
+      productData: { title, description, imageUrl, price, category }
     });
   };
 };

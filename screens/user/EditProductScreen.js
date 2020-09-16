@@ -6,11 +6,10 @@ import {
   Platform,
   Alert,
   KeyboardAvoidingView,
-  ActivityIndicator
+  ActivityIndicator, Picker
 } from "react-native";
 import { HeaderButtons, Item } from "react-navigation-header-buttons";
 import { useSelector, useDispatch } from "react-redux";
-
 import Colors from "../../constants/Colors";
 import HeaderButton from "../../components/UI/HeaderButton";
 import Input from "../../components/UI/Input";
@@ -44,7 +43,6 @@ const formReducer = (state, action) => {
 const EditProductScreen = props => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState();
-
   const prodId = props.navigation.getParam("productId");
   const editedProduct = useSelector(state =>
     state.products.userProducts.find(prod => prod.id === prodId)
@@ -56,13 +54,15 @@ const EditProductScreen = props => {
       title: editedProduct ? editedProduct.title : "",
       imageUrl: editedProduct ? editedProduct.imageUrl : "",
       description: editedProduct ? editedProduct.description : "",
-      price: ""
+      price: editedProduct ? editedProduct.price : "",
+      category: editedProduct ? editedProduct.category : "groceries",
     },
     inputValidities: {
       title: editedProduct ? true : false,
       imageUrl: editedProduct ? true : false,
       description: editedProduct ? true : false,
-      price: editedProduct ? true : false
+      price: editedProduct ? true : false,
+      category: true,
     },
     formIsValid: editedProduct ? true : false
   });
@@ -82,6 +82,7 @@ const EditProductScreen = props => {
     }
     setError(null);
     setIsLoading(true);
+    const category = formState.inputValues.category ? formState.inputValues.category : "groceries";
     try {
       if (editedProduct) {
         await dispatch(
@@ -89,8 +90,9 @@ const EditProductScreen = props => {
             prodId,
             formState.inputValues.title,
             formState.inputValues.description,
-            formState.inputValues.imageUrl
-          )
+            formState.inputValues.imageUrl,
+            +formState.inputValues.price,
+            category)
         );
       } else {
         await dispatch(
@@ -98,7 +100,8 @@ const EditProductScreen = props => {
             formState.inputValues.title,
             formState.inputValues.description,
             formState.inputValues.imageUrl,
-            +formState.inputValues.price
+            +formState.inputValues.price,
+            category
           )
         );
       }
@@ -134,67 +137,70 @@ const EditProductScreen = props => {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={{ flex: 1 }}
-      behavior="padding"
-      keyboardVerticalOffset={100}
-    >
-      <ScrollView>
-        <View style={styles.form}>
-          <Input
-            label="Title"
-            id="title"
-            errorText="Please enter a valid title!"
-            keyboardType="default"
-            autoCapitalize="sentences"
-            autoCorrect
-            returnKeyType="next"
-            onInputChange={inputChangeHandler}
-            initialValue={editedProduct ? editedProduct.title : ""}
-            initiallyValid={!!editedProduct}
-            required
-          />
-          <Input
-            label="Image Url"
-            id="imageUrl"
-            errorText="Please enter a valid image url!"
-            keyboardType="default"
-            returnKeyType="next"
-            onInputChange={inputChangeHandler}
-            initialValue={editedProduct ? editedProduct.imageUrl : ""}
-            initiallyValid={!!editedProduct}
-            required
-          />
-          {editedProduct ? null : (
-            <Input
-              label="Price"
-              id="price"
-              errorText="Please enter a valid price!"
-              keyboardType="decimal-pad"
-              returnKeyType="next"
-              onInputChange={inputChangeHandler}
-              required
-              min={0.1}
-            />
-          )}
-          <Input
-            label="Description"
-            id="description"
-            errorText="Please enter a valid description!"
-            keyboardType="default"
-            autoCapitalize="sentences"
-            autoCorrect
-            multiline
-            numberOfLines={3}
-            onInputChange={inputChangeHandler}
-            initialValue={editedProduct ? editedProduct.description : ""}
-            initiallyValid={!!editedProduct}
-            required
-            minLength={5}
-          />
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+    <ScrollView>
+      <View style={styles.form}>
+        <Input
+          label="Title"
+          id="title"
+          errorText="Please enter a valid title!"
+          keyboardType="default"
+          autoCapitalize="sentences"
+          autoCorrect
+          returnKeyType="next"
+          onInputChange={inputChangeHandler}
+          initialValue={editedProduct ? editedProduct.title : ""}
+          initiallyValid={!!editedProduct}
+          required
+        />
+        <Input
+          label="Image Url"
+          id="imageUrl"
+          errorText="Please enter a valid image url!"
+          keyboardType="default"
+          returnKeyType="next"
+          onInputChange={inputChangeHandler}
+          initialValue={editedProduct ? editedProduct.imageUrl : ""}
+          initiallyValid={!!editedProduct}
+          required
+        />
+        <Input
+          label="Price"
+          id="price"
+          errorText="Please enter a valid price!"
+          keyboardType="decimal-pad"
+          returnKeyType="next"
+          onInputChange={inputChangeHandler}
+          initialValue={editedProduct ? editedProduct.price.toString() : ""}
+          initiallyValid={!!editedProduct}
+          required
+          min={0.1}
+        />
+        <Input
+          label="Description"
+          id="description"
+          errorText="Please enter a valid description!"
+          keyboardType="default"
+          autoCapitalize="sentences"
+          autoCorrect
+          multiline
+          numberOfLines={3}
+          onInputChange={inputChangeHandler}
+          initialValue={editedProduct ? editedProduct.description : ""}
+          initiallyValid={!!editedProduct}
+          required
+          minLength={5}
+        />
+        <Picker
+          selectedValue={formState.inputValues.category ? formState.inputValues.category : editedProduct ? editedProduct.category : "groceries"}
+          onValueChange={(itemValue, itemIndex) => {
+            inputChangeHandler("category", itemValue, true)
+          }}
+        >
+          <Picker.Item label="Groceries" value="groceries" />
+          <Picker.Item label="Dairy Products" value="dairy_products" />
+        </Picker>
+      </View>
+    </ScrollView>
   );
 };
 

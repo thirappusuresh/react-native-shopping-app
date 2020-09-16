@@ -18,13 +18,18 @@ import * as productsActions from "../../store/actions/products";
 import HeaderButton from "../../components/UI/HeaderButton";
 import CategoryList from "./CategoryList";
 import CartIcon from './CartIcon';
+import Counter from "react-native-counters";
+import useTheme from '../../hooks/useTheme';
 
 const ProductsOverviewScreen = props => {
   const [isLoading, setIsLoading] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [error, setError] = useState();
   const products = useSelector(state => state.products.availableProducts);
+  const cartItems = useSelector(state => state.cart.items);
   const dispatch = useDispatch();
+  const theme = useTheme();
+  const [selectedCategory, setCategory] = useState();
 
   const loadProducts = useCallback(async () => {
     setError(null);
@@ -90,12 +95,15 @@ const ProductsOverviewScreen = props => {
   }
   return (
     <View style={styles.productsView}>
-      <CategoryList />
+      <CategoryList setCategory={(category) => setCategory(category)} selectedCategory={selectedCategory} />
       <FlatList
         onRefresh={loadProducts}
         refreshing={isRefreshing}
-        data={products}
+        data={selectedCategory ? products.filter(product => product.category === selectedCategory) : products}
+        columnWrapperStyle={styles.row}
+        numColumns={2}
         keyExtractor={item => item.id}
+        extraData={cartItems}
         renderItem={itemData => (
           <ProductItem
             image={itemData.item.imageUrl}
@@ -105,20 +113,23 @@ const ProductsOverviewScreen = props => {
               selectItemHandler(itemData.item.id, itemData.item.title);
             }}
           >
-            <RoundButton
-              color={Colors.primary}
-              label="View details"
-              onPress={() => {
-                selectItemHandler(itemData.item.id, itemData.item.title);
-              }}
-            />
-            <RoundButton
-              color={Colors.primary}
-              label="Add to Cart"
-              onPress={() => {
-                dispatch(cartActions.addToCart(itemData.item));
-              }}
-            />
+            {cartItems[itemData.item.id] && cartItems[itemData.item.id].quantity
+              ?
+              <View style={{ paddingTop: 10 }}><Counter countTextStyle={{ color: theme.appColor }} buttonTextStyle={{ color: theme.appColor }} buttonStyle={{ borderColor: theme.appColor }} start={cartItems[itemData.item.id].quantity} onChange={(number, type) => {
+                if (type === "+") {
+                  dispatch(cartActions.addToCart(itemData.item));
+                } else {
+                  dispatch(cartActions.removeFromCart(itemData.item.id));
+                }
+              }} /></View>
+              :
+              <RoundButton
+                color={Colors.primary}
+                label="Add to Cart"
+                onPress={() => {
+                  dispatch(cartActions.addToCart(itemData.item));
+                }}
+              />}
           </ProductItem>
         )}
       />
@@ -150,6 +161,10 @@ const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   productsView: {
     flex: 1
+  },
+  row: {
+    flex: 1,
+    justifyContent: "space-evenly"
   }
 });
 

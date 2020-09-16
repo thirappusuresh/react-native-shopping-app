@@ -9,6 +9,7 @@ import IconBadge from 'react-native-icon-badge';
 const CartIcon = ({ props }) => {
   const { navigation } = props
   const cartCount = useSelector(state => state.cart.items);
+  const count = Object.keys(cartCount).length;
 
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginRight: 20 }} onPress={() => {
@@ -32,7 +33,7 @@ const CartIcon = ({ props }) => {
         BadgeElement={
           <Text onPress={() => {
             navigation.navigate("Cart");
-          }} style={{ color: '#FFFFFF' }}>{Object.keys(cartCount).length}</Text>
+          }} style={{ color: '#FFFFFF' }}>{count}</Text>
         }
         IconBadgeStyle={
           {
@@ -41,6 +42,7 @@ const CartIcon = ({ props }) => {
             backgroundColor: '#000000'
           }
         }
+        Hidden={count === 0}
       />
     </View>
   )

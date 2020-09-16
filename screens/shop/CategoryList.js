@@ -3,10 +3,10 @@ import { ScrollView, StyleSheet, View, Text } from 'react-native';
 import RoundButton from '../../components/Base/RoundButton';
 import useConstants from '../../hooks/useConstants';
 import useTheme from "../../hooks/useTheme";
-const typeList = ["All", "Milk", "Dairy products", "Daily needs", "Ready to cook", "Snacks & Sweets"]
+const typeList = [{ label: "All" }, { label: "Groceries", value: "groceries" }, { label: "Dairy Products", value: "dairy_products" }]
 import Colors from "../../constants/Colors";
 
-const CategoryList = () => {
+const CategoryList = ({ setCategory, selectedCategory }) => {
     const constants = useConstants();
     const theme = useTheme();
 
@@ -14,10 +14,11 @@ const CategoryList = () => {
         <View style={style.container}>
             <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
                 {typeList.map((res, index) => {
-                    return <Text key={index} style={[style.categoryItem, index === 0 ? {
+                    let isHighlightTab = selectedCategory ? res.value === selectedCategory : index === 0;
+                    return <Text key={index} style={[style.categoryItem, isHighlightTab ? {
                         borderBottomColor: Colors.primary,
                         borderBottomWidth: 2,
-                    } : {}]} onPress={() => { alert(res) }} >{res}</Text>
+                    } : {}]} onPress={() => { setCategory(res.value) }} >{res.label}</Text>
                 })}
             </ScrollView>
         </View>

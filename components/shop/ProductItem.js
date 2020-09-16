@@ -26,9 +26,8 @@ const ProductItem = props => {
             <View style={styles.imageContainer}>
               <Image style={styles.image} source={{ uri: props.image }} />
             </View>
-
             <View style={styles.details}>
-              <Text style={styles.title}>{props.title}</Text>
+              <Text style={styles.title} numberOfLines={1}>{props.title}</Text>
               <Text style={styles.price}>&#8377; {props.price.toFixed(2)}</Text>
             </View>
             <View style={styles.actions}>{props.children}</View>
@@ -41,8 +40,12 @@ const ProductItem = props => {
 
 const styles = StyleSheet.create({
   product: {
-    height: 300,
-    margin: 20
+    height: 320,
+    flex: 0.5,
+    flexDirection: 'column',
+    margin: 5,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   touchable: {
     borderRadius: 10,
@@ -75,11 +78,11 @@ const styles = StyleSheet.create({
     color: "#888"
   },
   actions: {
-    flexDirection: "row",
-    justifyContent: "space-between",
     alignItems: "center",
+    width: "100%",
     height: "23%",
-    paddingHorizontal: 20
+    paddingHorizontal: 20,
+    paddingVertical: 5
   }
 });
 
