@@ -104,7 +104,7 @@ const AuthScreen = props => {
         );
         let res = await firebase.auth().signInWithCredential(credential);
         let accessToken = await res.user.getIdToken();
-        dispatch(authActions.updateLogin(res.user.uid, accessToken));
+        dispatch(authActions.updateLogin(res.user.uid, accessToken, formState.inputValues.email));
         props.navigation.navigate("Shop");
         setIsLoading(false);
       } catch (err) {

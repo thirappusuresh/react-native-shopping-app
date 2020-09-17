@@ -1,24 +1,19 @@
 import React, { useState } from "react";
 import {
-  StyleSheet,
+  FlatList, StyleSheet,
   Text,
-  View,
-  FlatList,
-  Button,
-  ActivityIndicator
+  View
 } from "react-native";
-import { useSelector, useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import BagItem from '../../components/Base/BagItem';
 import Colors from "../../constants/Colors";
-import CartItem from "../../components/shop/CartItem";
 import * as cartActions from "../../store/actions/cart";
 import * as ordersActions from "../../store/actions/orders";
-import OrdersScreen from "./OrdersScreen";
-import Card from "../../components/UI/Card";
+import ThemedText from '../../components/UI/ThemedText';
 
 const CartScreen = props => {
   const [isLoading, setIsLoading] = useState(false);
-
+  const categories = useSelector(state => state.categories.availableCategories);
   const cartTotalAmount = useSelector(state => state.cart.totalAmount);
   const cartItems = useSelector(state => {
     const transformedCartItems = [];
@@ -29,7 +24,8 @@ const CartScreen = props => {
         productPrice: state.cart.items[key].productPrice,
         quantity: state.cart.items[key].quantity,
         sum: state.cart.items[key].sum,
-        productImage: state.cart.items[key].productImage
+        productImage: state.cart.items[key].productImage,
+        productCategory: state.cart.items[key].productCategory
       });
     }
     return transformedCartItems.sort((a, b) =>
@@ -46,7 +42,7 @@ const CartScreen = props => {
 
   return (
     <View style={styles.screen}>
-      <Card style={styles.summary}>
+      {/* <Card style={styles.summary}>
         <Text style={styles.summaryText}>
           Total:{" "}
           <Text style={styles.amount}>
@@ -63,24 +59,23 @@ const CartScreen = props => {
               onPress={sendOrderHandler}
             />
           )}
-      </Card>
+      </Card> */}
       <FlatList
         data={cartItems}
         keyExtractor={item => item.productId}
         renderItem={itemData => (
-          <BagItem item={itemData.item} onRemove={() => {
+          <BagItem item={itemData.item} categories={categories} onRemove={() => {
             dispatch(cartActions.removeFromCart(itemData.item.productId));
           }} />
-          // <CartItem
-          //   quantity={itemData.item.quantity}
-          //   title={itemData.item.productTitle}
-          //   amount={itemData.item.sum}
-          //   deletable
-          //   onRemove={() => {
-          //     dispatch(cartActions.removeFromCart(itemData.item.productId));
-          //   }}
-          // />
         )}
+        contentContainerStyle={{ flexGrow: 1 }}
+        ListFooterComponentStyle={{ flexGrow: 1, justifyContent: 'flex-end' }}
+        ListFooterComponent={<View style={styles.continueBtn}>
+          <View style={{ flex: 1, flexDirection: "row", justifyContent: 'space-between' }}>
+            <ThemedText styleKey="highlightTextColor" style={styles.btnText}>Total: &#8377; {Math.round(cartTotalAmount.toFixed(2) * 100) / 100}</ThemedText>
+            <ThemedText styleKey="highlightTextColor" style={styles.btnText}>Continue &#62;</ThemedText>
+          </View>
+        </View>}
       />
     </View>
   );
@@ -91,8 +86,17 @@ CartScreen.navigationOptions = {
 };
 
 const styles = StyleSheet.create({
+  continueBtn: {
+    backgroundColor: Colors.primary,
+    paddingVertical: 15,
+    paddingHorizontal: 20
+  },
+  btnText: {
+    fontWeight: "bold",
+    fontSize: 16,
+  },
   screen: {
-    margin: 20
+    flex: 1
   },
   summary: {
     flexDirection: "row",

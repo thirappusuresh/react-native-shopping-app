@@ -1,3 +1,4 @@
+import 'react-native-gesture-handler';
 import React, { useState } from "react";
 import { Provider } from "react-redux";
 import { AppLoading } from "expo";
@@ -7,6 +8,7 @@ import { store } from "./store";
 import NavigationContainer from "./navigation/NavigationContainer";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+
 Icon.loadFont()
 MaterialIcon.loadFont()
 

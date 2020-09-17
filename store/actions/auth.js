@@ -8,10 +8,10 @@ export const AUTHENTICATE = "AUTHENTICATE";
 export const LOGOUT = "LOGOUT";
 let timer;
 
-export const authenticate = (userId, token, expiryTime) => {
+export const authenticate = (userId, token, mobileNumber, expiryTime) => {
   return dispatch => {
     dispatch(setLogoutTimer(expiryTime));
-    dispatch({ type: AUTHENTICATE, userId: userId, token: token });
+    dispatch({ type: AUTHENTICATE, userId: userId, token: token, mobileNumber });
   };
 };
 
@@ -53,19 +53,20 @@ export const signup = (email, password) => {
   };
 };
 
-export const updateLogin = (userId, token, expiresIn = 100000) => {
+export const updateLogin = (userId, token, mobileNumber, expiresIn = 100000) => {
   return async dispatch => {
     dispatch(
       authenticate(
         userId,
         token,
+        mobileNumber,
         parseInt(expiresIn) * 1000
       )
     );
     const expirationDate = new Date(
       new Date().getTime() + parseInt(expiresIn) * 1000
     );
-    saveDataToStorage(token, userId, expirationDate);
+    saveDataToStorage(token, userId, mobileNumber, expirationDate);
   }
 }
 
@@ -129,12 +130,13 @@ const setLogoutTimer = expirationTime => {
   };
 };
 
-const saveDataToStorage = (token, userId, expirationDate) => {
+const saveDataToStorage = (token, userId, mobileNumber, expirationDate) => {
   AsyncStorage.setItem(
     "userData",
     JSON.stringify({
       token: token,
       userId: userId,
+      mobileNumber,
       expiryDate: expirationDate.toISOString()
     })
   );

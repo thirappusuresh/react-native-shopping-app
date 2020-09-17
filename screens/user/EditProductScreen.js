@@ -14,6 +14,8 @@ import Colors from "../../constants/Colors";
 import HeaderButton from "../../components/UI/HeaderButton";
 import Input from "../../components/UI/Input";
 import * as productsActions from "../../store/actions/products";
+import ThemedText from '../../components/UI/ThemedText';
+import useTheme from '../../hooks/useTheme';
 
 const FORM_INPUT_UPDATE = "FORM_INPUT_UPDATE";
 
@@ -48,6 +50,7 @@ const EditProductScreen = props => {
     state.products.userProducts.find(prod => prod.id === prodId)
   );
   const dispatch = useDispatch();
+  const theme = useTheme();
 
   const [formState, dispatchFormState] = useReducer(formReducer, {
     inputValues: {
@@ -190,7 +193,9 @@ const EditProductScreen = props => {
           required
           minLength={5}
         />
+        <ThemedText style={styles.inputLabel} styleKey="inputColor">Category</ThemedText>
         <Picker
+          style={[styles.inputContainer, { borderBottomColor: theme.inputBorderColor, color: theme.textColor, padding: 0 }]}
           selectedValue={formState.inputValues.category ? formState.inputValues.category : editedProduct ? editedProduct.category : "groceries"}
           onValueChange={(itemValue, itemIndex) => {
             inputChangeHandler("category", itemValue, true)
@@ -228,6 +233,18 @@ const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: "center", alignItems: "center" },
   form: {
     margin: 20
+  },
+  inputContainer: {
+    height: 40,
+    marginTop: 10,
+    width: "100%",
+    marginBottom: 15,
+    borderBottomWidth: 2,
+    fontSize: 16,
+  },
+  inputLabel: {
+    width: "100%",
+    fontSize: 13
   }
 });
 

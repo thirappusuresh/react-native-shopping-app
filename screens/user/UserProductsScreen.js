@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import {
   FlatList,
   Button,
@@ -6,7 +6,8 @@ import {
   Alert,
   View,
   Text,
-  StyleSheet
+  StyleSheet,
+  ActivityIndicator
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
 import { HeaderButtons, Item } from "react-navigation-header-buttons";
@@ -15,10 +16,17 @@ import HeaderButton from "../../components/UI/HeaderButton";
 import ProductItem from "../../components/shop/ProductItem";
 import Colors from "../../constants/Colors";
 import * as productsActions from "../../store/actions/products";
+import * as ordersActions from "../../store/actions/orders";
+import CategoryList from "../shop/CategoryList";
+import OrderItem from "../../components/shop/OrderItem";
 
 const UserProductsScreen = props => {
   const userProducts = useSelector(state => state.products.userProducts);
+  const pendingOrders = useSelector(state => state.orders.pendingOrders);
+  const deliveredOrders = useSelector(state => state.orders.deliveredOrders);
   const dispatch = useDispatch();
+  const [selectedCategory, setCategory] = useState("products");
+  const [isLoading, setIsLoading] = useState(false);
 
   const editProductHandler = id => {
     props.navigation.navigate("EditProduct", { productId: id });
@@ -45,8 +53,40 @@ const UserProductsScreen = props => {
     );
   }
 
-  return (
-    <FlatList
+  const OrdersList = ({ orders }) => {
+    if (isLoading) {
+      return (
+        <View style={styles.screen}>
+          <ActivityIndicator size="large" color={Colors.primary} />
+        </View>
+      );
+    }
+
+    if (!orders || orders.length === 0) {
+      return (
+        <View style={styles.screen}>
+          <Text>No orders found</Text>
+        </View>
+      );
+    }
+
+    return (
+      <FlatList
+        data={orders}
+        keyExtractor={item => item.id}
+        renderItem={itemData => (
+          <OrderItem
+            amount={itemData.item.totalAmount}
+            date={itemData.item.readableDate}
+            item={itemData.item.items}
+          />
+        )}
+      />
+    );
+  }
+
+  const categoryMap = {
+    products: <FlatList
       data={userProducts}
       keyExtractor={item => item.id}
       columnWrapperStyle={styles.row}
@@ -82,13 +122,34 @@ const UserProductsScreen = props => {
           </View>
         </ProductItem>
       )}
-    />
+    />,
+    pending_orders: <OrdersList orders={pendingOrders} />,
+    delivered_orders: <OrdersList orders={deliveredOrders} />
+  }
+
+  const updateCategory = (category) => {
+    setCategory(category);
+    if (category === ('pending_orders' || 'delivered_orders')) {
+      setIsLoading(true);
+      dispatch(ordersActions.fetchOrders(category)).then(() => {
+        setIsLoading(false);
+      }).catch(() => {
+        setIsLoading(false);
+      });
+    }
+  }
+
+  return (
+    <View style={{ flex: 1 }}>
+      <CategoryList setCategory={(category) => updateCategory(category)} selectedCategory={selectedCategory} categories={[{ label: "Products", value: "products" }, { label: "Pending Orders", value: "pending_orders" }, { label: "Delivered Orders", value: "delivered_orders" }]} />
+      {categoryMap[selectedCategory]}
+    </View>
   );
 };
 
 UserProductsScreen.navigationOptions = navData => {
   return {
-    headerTitle: "Your Products",
+    headerTitle: "Admin",
     headerLeft: (
       <HeaderButtons HeaderButtonComponent={HeaderButton}>
         <Item
@@ -118,7 +179,7 @@ const styles = StyleSheet.create({
   screen: {
     flex: 1,
     justifyContent: "center",
-    alignItems: "center"
+    alignItems: "center",
   },
   row: {
     flex: 1,

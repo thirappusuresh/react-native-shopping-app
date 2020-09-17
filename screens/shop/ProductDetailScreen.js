@@ -8,27 +8,41 @@ import {
   Button
 } from "react-native";
 import { useSelector, useDispatch } from "react-redux";
-
+import Counter from "react-native-counters";
 import Colors from "../../constants/Colors";
 import * as cartActions from "../../store/actions/cart";
+import useTheme from '../../hooks/useTheme';
+import RoundButton from '../../components/Base/RoundButton';
 
 const ProductDetailScreen = props => {
   const productId = props.navigation.getParam("productId");
   const selectedProduct = useSelector(state =>
     state.products.availableProducts.find(prod => prod.id === productId)
   );
+  const cartItems = useSelector(state => state.cart.items);
   const dispatch = useDispatch();
+  const theme = useTheme();
   return (
     <ScrollView>
       <Image style={styles.image} source={{ uri: selectedProduct.imageUrl }} />
       <View style={styles.actions}>
-        <Button
-          color={Colors.primary}
-          title="Add to cart"
-          onPress={() => {
-            dispatch(cartActions.addToCart(selectedProduct));
-          }}
-        />
+        {cartItems[selectedProduct.id] && cartItems[selectedProduct.id].quantity
+          ?
+          <View style={{ paddingTop: 10 }}><Counter max={100} countTextStyle={{ color: theme.appColor }} buttonTextStyle={{ color: theme.appColor }} buttonStyle={{ borderColor: theme.appColor }} start={cartItems[selectedProduct.id].quantity} onChange={(number, type) => {
+            if (type === "+") {
+              dispatch(cartActions.addToCart(selectedProduct));
+            } else {
+              dispatch(cartActions.removeFromCart(selectedProduct.id));
+            }
+          }} /></View>
+          :
+          <RoundButton
+            color={Colors.primary}
+            label="Add to Cart"
+            onPress={() => {
+              dispatch(cartActions.addToCart(selectedProduct));
+            }}
+          />}
       </View>
       <Text style={styles.price}>&#8377; {selectedProduct.price.toFixed(2)}</Text>
       <Text style={styles.description}>{selectedProduct.description}</Text>

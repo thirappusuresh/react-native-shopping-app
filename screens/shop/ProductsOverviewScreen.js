@@ -115,7 +115,7 @@ const ProductsOverviewScreen = props => {
           >
             {cartItems[itemData.item.id] && cartItems[itemData.item.id].quantity
               ?
-              <View style={{ paddingTop: 10 }}><Counter countTextStyle={{ color: theme.appColor }} buttonTextStyle={{ color: theme.appColor }} buttonStyle={{ borderColor: theme.appColor }} start={cartItems[itemData.item.id].quantity} onChange={(number, type) => {
+              <View style={{ paddingTop: 10 }}><Counter max={100} countTextStyle={{ color: theme.appColor }} buttonTextStyle={{ color: theme.appColor }} buttonStyle={{ borderColor: theme.appColor }} start={cartItems[itemData.item.id].quantity} onChange={(number, type) => {
                 if (type === "+") {
                   dispatch(cartActions.addToCart(itemData.item));
                 } else {

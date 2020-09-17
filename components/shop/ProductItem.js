@@ -21,7 +21,7 @@ const ProductItem = props => {
   return (
     <Card style={styles.product}>
       <View style={styles.touchable}>
-        <TouchableCmp onPress={props.onSelect} useForeground>
+        <TouchableCmp onPress={props.onSelect}>
           <View>
             <View style={styles.imageContainer}>
               <Image style={styles.image} source={{ uri: props.image }} />
@@ -49,7 +49,8 @@ const styles = StyleSheet.create({
   },
   touchable: {
     borderRadius: 10,
-    overflow: "hidden"
+    overflow: "hidden",
+    width: "100%",
   },
   imageContainer: {
     width: "100%",

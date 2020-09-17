@@ -6,14 +6,14 @@ import useTheme from "../../hooks/useTheme";
 const typeList = [{ label: "All" }, { label: "Groceries", value: "groceries" }, { label: "Dairy Products", value: "dairy_products" }]
 import Colors from "../../constants/Colors";
 
-const CategoryList = ({ setCategory, selectedCategory }) => {
+const CategoryList = ({ setCategory, selectedCategory, categories }) => {
     const constants = useConstants();
     const theme = useTheme();
-
+    const categoriesList = categories ? categories : typeList;
     return (
         <View style={style.container}>
             <ScrollView horizontal={true} showsHorizontalScrollIndicator={false}>
-                {typeList.map((res, index) => {
+                {categoriesList.map((res, index) => {
                     let isHighlightTab = selectedCategory ? res.value === selectedCategory : index === 0;
                     return <Text key={index} style={[style.categoryItem, isHighlightTab ? {
                         borderBottomColor: Colors.primary,

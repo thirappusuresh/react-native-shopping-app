@@ -2,7 +2,6 @@ import { ADD_TO_CART, REMOVE_FROM_CART } from "../actions/cart";
 import { ADD_ORDER } from "../actions/orders";
 import { DELETE_PRODUCT } from "../actions/products";
 import CartItem from "../../models/cart-item";
-import { DrawerActions } from "react-navigation-drawer";
 
 const initialState = {
   items: {},
@@ -16,6 +15,7 @@ export default (state = initialState, action) => {
       const prodPrice = addedProduct.price;
       const prodTitle = addedProduct.title;
       const prodImage = addedProduct.imageUrl;
+      const prodCategory = addedProduct.category;
       let updatedOrNewCartItem;
 
       if (state.items[addedProduct.id]) {
@@ -25,10 +25,11 @@ export default (state = initialState, action) => {
           prodPrice,
           prodTitle,
           state.items[addedProduct.id].sum + prodPrice,
-          state.items[addedProduct.id].imageUrl
+          prodImage,
+          prodCategory
         );
       } else {
-        updatedOrNewCartItem = new CartItem(1, prodPrice, prodTitle, prodPrice, prodImage);
+        updatedOrNewCartItem = new CartItem(1, prodPrice, prodTitle, prodPrice, prodImage, prodCategory);
       }
       return {
         ...state,
@@ -46,7 +47,8 @@ export default (state = initialState, action) => {
           selectedCartItem.productPrice,
           selectedCartItem.productTitle,
           selectedCartItem.sum - selectedCartItem.productPrice,
-          selectedCartItem.productImage
+          selectedCartItem.productImage,
+          selectedCartItem.category
         );
         updatedCartItems = { ...state.items, [action.pid]: updatedCartItem };
       } else {
