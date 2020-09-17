@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import {
   FlatList, StyleSheet,
   Text,
+  TouchableOpacity,
   View
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
@@ -71,10 +72,12 @@ const CartScreen = props => {
         contentContainerStyle={{ flexGrow: 1 }}
         ListFooterComponentStyle={{ flexGrow: 1, justifyContent: 'flex-end' }}
         ListFooterComponent={<View style={styles.continueBtn}>
-          <View style={{ flex: 1, flexDirection: "row", justifyContent: 'space-between' }}>
-            <ThemedText styleKey="highlightTextColor" style={styles.btnText}>Total: &#8377; {Math.round(cartTotalAmount.toFixed(2) * 100) / 100}</ThemedText>
-            <ThemedText styleKey="highlightTextColor" style={styles.btnText}>Continue &#62;</ThemedText>
-          </View>
+          <TouchableOpacity onPress={() => props.navigation.navigate("Address")}>
+            <View style={{ flex: 1, flexDirection: "row", justifyContent: 'space-between' }}>
+              <ThemedText styleKey="highlightTextColor" style={styles.btnText}>Total: &#8377; {Math.round(cartTotalAmount.toFixed(2) * 100) / 100}</ThemedText>
+              <ThemedText styleKey="highlightTextColor" style={styles.btnText}>Continue &#62;</ThemedText>
+            </View>
+          </TouchableOpacity>
         </View>}
       />
     </View>
