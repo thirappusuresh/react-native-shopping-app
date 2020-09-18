@@ -7,7 +7,8 @@ import {
   DrawerNavigatorItems
 } from "react-navigation-drawer";
 import { Ionicons } from "@expo/vector-icons";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
+import ThemedText from '../components/UI/ThemedText';
 
 import Colors from "../constants/Colors";
 import ProductsOverviewScreen from "../screens/shop/ProductsOverviewScreen";
@@ -20,8 +21,6 @@ import EditProductScreen from "../screens/user/EditProductScreen";
 import AuthScreen from "../screens/user/AuthScreen";
 import StartupScreen from "../screens/StartupScreen";
 import * as authActions from "../store/actions/auth";
-import { store } from "../store";
-const { userId } = store.getState().auth;
 
 const defaultNavOptions = {
   headerStyle: {
@@ -85,15 +84,6 @@ const AdminNavigator = createStackNavigator(
   }
 );
 
-const nativationOptions = {
-  Home: ProductsNavigator,
-  Orders: OrdersNavigator
-};
-
-//if (userId === "UReAmchbz7bKY6O9e1rANRJstG42") {
-nativationOptions.Admin = AdminNavigator
-//}
-
 const DrawerNavigatorItem = ({ onPress, icon, title }) => {
   return <TouchableNativeFeedback
     onPress={onPress}
@@ -120,35 +110,74 @@ const DrawerNavigatorItem = ({ onPress, icon, title }) => {
         ]}
       >
         {title}
-    </Text>
+      </Text>
     </SafeAreaView>
   </TouchableNativeFeedback>
 }
+
+const NavigationContent = props => {
+  const dispatch = useDispatch();
+  const mobileNumber = useSelector(state => state.auth.mobileNumber);
+  return (
+    <View style={{ flex: 1 }}>
+      <SafeAreaView forceInset={{ top: "always", horizontal: "never" }}>
+        <View style={{
+          backgroundColor: Colors.primary, paddingBottom: 40,
+          paddingTop: 64, paddingHorizontal: 20
+        }}>
+          <ThemedText styleKey="highlightTextColor" style={{
+            fontWeight: "bold",
+            fontSize: 18
+          }}>Welcome!!</ThemedText>
+          {mobileNumber ? <ThemedText styleKey="highlightTextColor" style={{
+            fontWeight: "bold",
+            fontSize: 15,
+            marginTop: 10
+          }}>{mobileNumber}</ThemedText> : <></>}
+        </View>
+        <DrawerNavigatorItems {...props} />
+        <DrawerNavigatorItem icon={<Ionicons
+          name={Platform.OS === "android" ? "md-call" : "ios-call"}
+          size={23} />}
+          onPress={() => Linking.openURL(`tel:8185081363`)}
+          title="Call Helpline" />
+        <DrawerNavigatorItem icon={<Ionicons
+          name={Platform.OS === "android" ? "md-log-out" : "ioss-log-out"}
+          size={23} />}
+          onPress={() => dispatch(authActions.logout())}
+          title="Logout" />
+      </SafeAreaView>
+      <View style={{ padding: 20, position: 'absolute', bottom: 0 }}>
+        <ThemedText styleKey="textColor" style={{}}>App developed by Suresh!!</ThemedText>
+      </View>
+    </View>
+  );
+};
+
+const nativationAdminOptions = {
+  Home: ProductsNavigator,
+  Orders: OrdersNavigator,
+  Admin: AdminNavigator
+};
+
+const ShopAdminNavigator = createDrawerNavigator(
+  nativationAdminOptions,
+  {
+    contentOptions: { activeTintColor: Colors.primary },
+    contentComponent: NavigationContent
+  }
+);
+
+const nativationOptions = {
+  Home: ProductsNavigator,
+  Orders: OrdersNavigator
+};
 
 const ShopNavigator = createDrawerNavigator(
   nativationOptions,
   {
     contentOptions: { activeTintColor: Colors.primary },
-    contentComponent: props => {
-      const dispatch = useDispatch();
-      return (
-        <View style={{ flex: 1, paddingTop: 20 }}>
-          <SafeAreaView forceInset={{ top: "always", horizontal: "never" }}>
-            <DrawerNavigatorItems {...props} />
-            <DrawerNavigatorItem icon={<Ionicons
-              name={Platform.OS === "android" ? "md-call" : "ios-call"}
-              size={23} />}
-              onPress={() => Linking.openURL(`tel:8185081363`)}
-              title="Call Helpline" />
-            <DrawerNavigatorItem icon={<Ionicons
-              name={Platform.OS === "android" ? "md-log-out" : "ioss-log-out"}
-              size={23} />}
-              onPress={() => dispatch(authActions.logout())}
-              title="Logout" />
-          </SafeAreaView>
-        </View>
-      );
-    }
+    contentComponent: NavigationContent
   }
 );
 
@@ -165,7 +194,8 @@ const AuthNavigator = createStackNavigator(
 const MainNavigator = createSwitchNavigator({
   Startup: StartupScreen,
   Auth: AuthNavigator,
-  Shop: ShopNavigator
+  Shop: ShopNavigator,
+  Admin: ShopAdminNavigator
 });
 
 export default createAppContainer(MainNavigator);

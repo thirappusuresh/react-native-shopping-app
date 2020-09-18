@@ -129,7 +129,7 @@ const UserProductsScreen = props => {
 
   const updateCategory = (category) => {
     setCategory(category);
-    if (category === ('pending_orders' || 'delivered_orders')) {
+    if (category === 'pending_orders' || category === 'delivered_orders') {
       setIsLoading(true);
       dispatch(ordersActions.fetchOrders(category)).then(() => {
         setIsLoading(false);

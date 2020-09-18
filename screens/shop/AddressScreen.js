@@ -1,14 +1,15 @@
 import React, { useCallback, useEffect, useReducer, useState } from "react";
 import {
   ActivityIndicator, Alert, Platform, ScrollView,
-  StyleSheet, View
+  StyleSheet, View, TouchableOpacity
 } from "react-native";
 import { useDispatch, useSelector } from "react-redux";
 import Input from "../../components/UI/Input";
 import ThemedText from '../../components/UI/ThemedText';
 import Colors from "../../constants/Colors";
 import useTheme from '../../hooks/useTheme';
-import * as productsActions from "../../store/actions/products";
+import * as ordersActions from "../../store/actions/orders";
+import * as cartActions from "../../store/actions/cart";
 
 const FORM_INPUT_UPDATE = "FORM_INPUT_UPDATE";
 
@@ -35,25 +36,40 @@ const formReducer = (state, action) => {
   return state;
 };
 
-const EditProductScreen = props => {
+const AddressScreen = props => {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState();
-  const prodId = props.navigation.getParam("productId");
-  const editedProduct = useSelector(state =>
-    state.products.userProducts.find(prod => prod.id === prodId)
-  );
   const dispatch = useDispatch();
   const theme = useTheme();
-
+  const mobileNumber = useSelector(state => state.auth.mobileNumber);
+  const cartTotalAmount = useSelector(state => state.cart.totalAmount);
+  const address = useSelector(state => state.cart.address);
+  const cartItems = useSelector(state => {
+    const transformedCartItems = [];
+    for (const key in state.cart.items) {
+      transformedCartItems.push({
+        productId: key,
+        productTitle: state.cart.items[key].productTitle,
+        productPrice: state.cart.items[key].productPrice,
+        quantity: state.cart.items[key].quantity,
+        sum: state.cart.items[key].sum,
+        productImage: state.cart.items[key].productImage,
+        productCategory: state.cart.items[key].productCategory
+      });
+    }
+    return transformedCartItems.sort((a, b) =>
+      a.productId > b.productId ? 1 : -1
+    );
+  });
   const [formState, dispatchFormState] = useReducer(formReducer, {
     inputValidities: {
-      title: editedProduct ? true : false,
-      imageUrl: editedProduct ? true : false,
-      description: editedProduct ? true : false,
-      price: editedProduct ? true : false,
-      category: true,
+      name: false,
+      doorNo: false,
+      addressLine1: false,
+      addressLine2: false,
+      pincode: true,
     },
-    formIsValid: editedProduct ? true : false
+    formIsValid: false
   });
 
   useEffect(() => {
@@ -71,35 +87,17 @@ const EditProductScreen = props => {
     }
     setError(null);
     setIsLoading(true);
-    const category = formState.inputValues.category ? formState.inputValues.category : "groceries";
     try {
-      if (editedProduct) {
-        await dispatch(
-          productsActions.updateProduct(
-            prodId,
-            formState.inputValues.title,
-            formState.inputValues.description,
-            formState.inputValues.imageUrl,
-            +formState.inputValues.price,
-            category)
-        );
-      } else {
-        await dispatch(
-          productsActions.createProduct(
-            formState.inputValues.title,
-            formState.inputValues.description,
-            formState.inputValues.imageUrl,
-            +formState.inputValues.price,
-            category
-          )
-        );
-      }
-      props.navigation.goBack();
+      const address = formState.inputValues;
+      address.pincode = "516227";
+      address.mobileNumber = mobileNumber;
+      await dispatch(cartActions.addAddress(address));
+      await dispatch(ordersActions.addOrder(cartItems, cartTotalAmount, address));
     } catch (err) {
       setError(err.message);
     }
     setIsLoading(false);
-  }, [dispatch, prodId, formState]);
+  }, [dispatch, formState]);
 
   const inputChangeHandler = useCallback(
     (inputIdentifier, inputValue, inputValidity) => {
@@ -126,66 +124,83 @@ const EditProductScreen = props => {
       <ScrollView>
         <View style={styles.form}>
           <Input
-            label="Name"
-            id="title"
-            errorText="Please enter a valid title!"
+            label="Name*"
+            id="name"
+            errorText="Please enter your name"
             keyboardType="default"
             autoCapitalize="sentences"
-            autoCorrect
             returnKeyType="next"
             onInputChange={inputChangeHandler}
-            initialValue={editedProduct ? editedProduct.title : ""}
-            initiallyValid={!!editedProduct}
+            initialValue={address ? address.name : ""}
+            initiallyValid={!!address}
             required
           />
           <Input
-            label="Door No / Office / Company"
-            id="imageUrl"
-            errorText="Please enter a valid image url!"
+            label="Door No / Office / Company*"
+            id="doorNo"
+            errorText="Please fill the mandatory field"
             keyboardType="default"
             returnKeyType="next"
             onInputChange={inputChangeHandler}
-            initialValue={editedProduct ? editedProduct.imageUrl : ""}
-            initiallyValid={!!editedProduct}
+            initialValue={address ? address.doorNo : ""}
+            initiallyValid={!!address}
             required
           />
           <Input
-            label="Address Line 1 / Street Name"
-            id="price"
-            errorText="Please enter a valid price!"
-            keyboardType="decimal-pad"
+            label="Address Line 1 / Street Name*"
+            id="addressLine1"
+            errorText="Please fill the mandatory field"
+            keyboardType="default"
             returnKeyType="next"
             onInputChange={inputChangeHandler}
-            initialValue={editedProduct ? editedProduct.price.toString() : ""}
-            initiallyValid={!!editedProduct}
+            initialValue={address ? address.addressLine1 : ""}
+            initiallyValid={!!address}
             required
-            min={0.1}
           />
           <Input
-            label="Address Line 2 / Landmark"
-            id="description"
+            label="Address Line 2 / Landmark*"
+            id="addressLine2"
+            errorText="Please fill the mandatory field"
+            keyboardType="default"
+            autoCapitalize="sentences"
+            multiline
+            numberOfLines={3}
+            onInputChange={inputChangeHandler}
+            initialValue={address ? address.addressLine2 : ""}
+            initiallyValid={!!address}
+            required
+          />
+          <Input
+            label="Pincode"
+            id="pincode"
+            editable={false}
             errorText="Please enter a valid description!"
-            keyboardType="default"
+            keyboardType="decimal-pad"
             autoCapitalize="sentences"
             autoCorrect
             multiline
             numberOfLines={3}
             onInputChange={inputChangeHandler}
-            initialValue={editedProduct ? editedProduct.description : ""}
-            initiallyValid={!!editedProduct}
+            initialValue={"516227"}
+            initiallyValid={true}
             required
             minLength={5}
           />
+          <ThemedText styleKey="appColor">Currently the service is available only in Badvel!!</ThemedText>
         </View>
       </ScrollView>
       <View style={styles.bottomView} >
-        <ThemedText styleKey="highlightTextColor" style={styles.btnText}>Place Order</ThemedText>
+        {isLoading ? (
+          <ActivityIndicator size="small" color={Colors.primary} />
+        ) : (<TouchableOpacity onPress={submitHandler} style={{width: "100%", alignItems: "center"}}>
+          <ThemedText styleKey="highlightTextColor" style={styles.btnText}>Place Order</ThemedText>
+        </TouchableOpacity>)}
       </View>
     </View>
   );
 };
 
-EditProductScreen.navigationOptions = navData => {
+AddressScreen.navigationOptions = navData => {
   return {
     headerTitle: "Shipping Address",
   };
@@ -230,4 +245,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default EditProductScreen;
+export default AddressScreen;

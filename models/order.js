@@ -1,11 +1,13 @@
 import moment from "moment";
 
 class Order {
-  constructor(id, items, totalAmount, date) {
+  constructor(id, items, totalAmount, date, status, address) {
     this.id = id;
     this.items = items;
     this.totalAmount = totalAmount;
     this.date = date;
+    this.status = status;
+    this.address = address;
   }
   get readableDate() {
     // return this.date.toLocaleDateString("en-EN", {

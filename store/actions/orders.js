@@ -9,10 +9,10 @@ export const SET_DELIVERED_ORDERS = "SET_DELIVERED_ORDERS";
 export const fetchOrders = (status) => {
   return async (dispatch, getState) => {
     const userId = getState().auth.userId;
-    let url = `${Env.url}orders/${userId}.json`;
+    let url = `${Env.url}orders.json?orderBy="userId"&equalTo="${userId}"`;
     try {
       if(status) {
-        url = `${Env.url}orders.json?orderBy="status"&equalTo=delivered`;
+        url = `${Env.url}orders.json?orderBy="status"&equalTo="${status === "pending_orders" ? "Ordered" : "Delivered"}"`;
       }
       const response = await fetch(url); // add your own API url
       if (!response.ok) {
@@ -26,7 +26,10 @@ export const fetchOrders = (status) => {
             key,
             resData[key].cartItems,
             resData[key].totalAmount,
-            new Date(resData[key].date)
+            new Date(resData[key].date),
+            resData[key].status,
+            resData[key].address,
+            resData[key].userId
           )
         );
       }
@@ -45,21 +48,23 @@ export const fetchOrders = (status) => {
   };
 };
 
-export const addOrder = (cartItems, totalAmount) => {
+export const addOrder = (cartItems, totalAmount, address) => {
   return async (dispatch, getState) => {
     const token = getState().auth.token;
     const userId = getState().auth.userId;
-    const mobileNumber = getState().auth.mobileNumber;
     const date = new Date();
     const response = await fetch(
-      `${Env.url}orders/${userId}.json?auth=${token}`, // add your own API url
+      `${Env.url}orders.json?auth=${token}`, // add your own API url
       {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           cartItems,
           totalAmount,
-          date: date.toISOString()
+          date: date.toISOString(),
+          status: "Ordered",
+          address: address,
+          userId: userId
         })
       }
     );
@@ -76,7 +81,10 @@ export const addOrder = (cartItems, totalAmount) => {
         id: resData.name,
         items: cartItems,
         amount: totalAmount,
-        date: date
+        date: date,
+        status: "Ordered",
+        address: address,
+        userId: userId
       }
     });
   };

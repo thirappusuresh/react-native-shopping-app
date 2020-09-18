@@ -5,12 +5,14 @@ import {
   View,
   AsyncStorage
 } from "react-native";
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import Colors from "../constants/Colors";
 import * as authActions from "../store/actions/auth";
 
 const StartupScreen = props => {
   const dispatch = useDispatch();
+  const allowedAdminMobileNumbers = useSelector(state => state.auth.allowedAdminMobileNumbers);
+
   useEffect(() => {
     const tryLogin = async () => {
       const userData = await AsyncStorage.getItem("userData");
@@ -27,7 +29,11 @@ const StartupScreen = props => {
       }
       const expirationTime = expirationDate.getTime() - new Date().getTime();
       dispatch(authActions.authenticate(userId, token, mobileNumber, expirationTime));
-      props.navigation.navigate("Shop");
+      if(allowedAdminMobileNumbers.includes(mobileNumber)) {
+        props.navigation.navigate("Admin");
+      } else {
+        props.navigation.navigate("Shop");
+      }
     };
 
     tryLogin();

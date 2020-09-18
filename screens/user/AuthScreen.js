@@ -5,7 +5,7 @@ import {
   ImageBackground, ScrollView, StyleSheet, Platform, TouchableOpacity, View
 } from "react-native";
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
-import { useDispatch } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import RoundButton from '../../components/Base/RoundButton';
 import Input from "../../components/UI/Input";
 import ThemedText from '../../components/UI/ThemedText';
@@ -50,7 +50,7 @@ const AuthScreen = props => {
   const constants = useConstants();
   const theme = useTheme();
   const language = useLanguage();
-
+  const allowedAdminMobileNumbers = useSelector(state => state.auth.allowedAdminMobileNumbers);
 
   const [formState, dispatchFormState] = useReducer(formReducer, {
     inputValues: {
@@ -87,7 +87,11 @@ const AuthScreen = props => {
     setIsLoading(true);
     try {
       await dispatch(action);
-      props.navigation.navigate("Shop");
+      if(formState.inputValues.email === "8008809708") {
+        props.navigation.navigate("Admin");
+      } else {
+        props.navigation.navigate("Shop");
+      }
     } catch (err) {
       setError(err.message);
       setIsLoading(false);
@@ -105,8 +109,11 @@ const AuthScreen = props => {
         let res = await firebase.auth().signInWithCredential(credential);
         let accessToken = await res.user.getIdToken();
         dispatch(authActions.updateLogin(res.user.uid, accessToken, formState.inputValues.email));
-        props.navigation.navigate("Shop");
-        setIsLoading(false);
+        if(allowedAdminMobileNumbers.includes(formState.inputValues.email)) {
+          props.navigation.navigate("Admin");
+        } else {
+          props.navigation.navigate("Shop");
+        }        setIsLoading(false);
       } catch (err) {
         setOtpError(true);
         setIsLoading(false);

@@ -1,15 +1,21 @@
-import { ADD_TO_CART, REMOVE_FROM_CART } from "../actions/cart";
+import { ADD_TO_CART, REMOVE_FROM_CART, ADD_ADDRESS } from "../actions/cart";
 import { ADD_ORDER } from "../actions/orders";
 import { DELETE_PRODUCT } from "../actions/products";
 import CartItem from "../../models/cart-item";
 
 const initialState = {
   items: {},
-  totalAmount: 0
+  totalAmount: 0,
+  address: {}
 };
 
 export default (state = initialState, action) => {
   switch (action.type) {
+    case ADD_ADDRESS:
+      return {
+        ...state,
+        address: action.address
+      }
     case ADD_TO_CART:
       const addedProduct = action.product;
       const prodPrice = addedProduct.price;
@@ -61,7 +67,7 @@ export default (state = initialState, action) => {
         totalAmount: state.totalAmount - selectedCartItem.productPrice
       };
     case ADD_ORDER:
-      return initialState;
+      return {...initialState, address: state.address};
     case DELETE_PRODUCT:
       if (!state.items[action.pid]) {
         return state;
