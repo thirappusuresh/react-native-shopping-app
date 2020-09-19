@@ -93,6 +93,7 @@ const AddressScreen = props => {
       address.mobileNumber = mobileNumber;
       await dispatch(cartActions.addAddress(address));
       await dispatch(ordersActions.addOrder(cartItems, cartTotalAmount, address));
+      props.navigation.navigate("Confirm");
     } catch (err) {
       setError(err.message);
     }

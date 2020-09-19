@@ -15,6 +15,7 @@ import ProductsOverviewScreen from "../screens/shop/ProductsOverviewScreen";
 import ProductDetailScreen from "../screens/shop/ProductDetailScreen";
 import CartScreen from "../screens/shop/CartScreen";
 import AddressScreen from "../screens/shop/AddressScreen";
+import ConfirmScreen from "../screens/shop/ConfirmScreen";
 import OrdersScreen from "../screens/shop/OrdersScreen";
 import UserProductsScreen from "../screens/user/UserProductsScreen";
 import EditProductScreen from "../screens/user/EditProductScreen";
@@ -36,7 +37,8 @@ const ProductsNavigator = createStackNavigator(
     ProductsOverview: ProductsOverviewScreen,
     ProductDetail: ProductDetailScreen,
     Cart: CartScreen,
-    Address: AddressScreen
+    Address: AddressScreen,
+    Confirm: ConfirmScreen
   },
   {
     navigationOptions: {
