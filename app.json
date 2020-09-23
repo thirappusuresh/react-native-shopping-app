@@ -3,7 +3,6 @@
     "name": "Shop",
     "slug": "shop",
     "privacy": "public",
-    "sdkVersion": "35.0.0",
     "platforms": [
       "ios",
       "android",
@@ -24,8 +23,13 @@
       "**/*"
     ],
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.shop.badvel"
     },
-    "description": ""
+    "description": "",
+    "android": {
+      "package": "com.shop.badvel"
+    },
+    "entryPoint": "node_modules/expo/AppEntry.js"
   }
 }

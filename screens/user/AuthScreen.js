@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useReducer, useState, useRef } from "react";
 import {
-  Alert,
+  Alert, WebView,
   ActivityIndicator, StatusBar, Text, TextInput,
   ImageBackground, ScrollView, StyleSheet, Platform, TouchableOpacity, View
 } from "react-native";
@@ -16,6 +16,7 @@ import * as authActions from "../../store/actions/auth";
 import { firebase } from "../../firebase";
 import { FirebaseRecaptchaVerifierModal } from "expo-firebase-recaptcha";
 import OTPTextView from 'react-native-otp-textinput';
+import { Linking } from 'expo';
 
 const FORM_INPUT_UPDATE = "FORM_INPUT_UPDATE";
 const ImagePath = require("../../images/Recraftsoppify_aap_bg_effect.png");
@@ -51,6 +52,7 @@ const AuthScreen = props => {
   const theme = useTheme();
   const language = useLanguage();
   const allowedAdminMobileNumbers = useSelector(state => state.auth.allowedAdminMobileNumbers);
+  const captchaUrl = `https://rn-shopping-1e646.web.app/index.html?appurl=${Linking.makeUrl('')}`
 
   const [formState, dispatchFormState] = useReducer(formReducer, {
     inputValues: {
@@ -87,7 +89,7 @@ const AuthScreen = props => {
     setIsLoading(true);
     try {
       await dispatch(action);
-      if(formState.inputValues.email === "8008809708") {
+      if (formState.inputValues.email === "8008809708") {
         props.navigation.navigate("Admin");
       } else {
         props.navigation.navigate("Shop");
@@ -109,11 +111,11 @@ const AuthScreen = props => {
         let res = await firebase.auth().signInWithCredential(credential);
         let accessToken = await res.user.getIdToken();
         dispatch(authActions.updateLogin(res.user.uid, accessToken, formState.inputValues.email));
-        if(allowedAdminMobileNumbers.includes(formState.inputValues.email)) {
+        if (allowedAdminMobileNumbers.includes(formState.inputValues.email)) {
           props.navigation.navigate("Admin");
         } else {
           props.navigation.navigate("Shop");
-        }        setIsLoading(false);
+        } setIsLoading(false);
       } catch (err) {
         setOtpError(true);
         setIsLoading(false);
@@ -132,6 +134,39 @@ const AuthScreen = props => {
     },
     [dispatchFormState]
   );
+
+  const _onNavigationStateChange = (webViewState) => {
+    console.log(webViewState.url)
+    onPhoneComplete(webViewState.url)
+  }
+  const onPhoneComplete = async (url) => {
+    let token = null
+    console.log("ok");
+    //WebBrowser.dismissBrowser()
+    const tokenEncoded = Linking.parse(url).queryParams['token']
+    if (tokenEncoded)
+      token = decodeURIComponent(tokenEncoded)
+
+    verifyCaptchaSendSms(token);
+  }
+
+  verifyCaptchaSendSms = async (token) => {
+    if (token) {
+      const { email } = formState.inputValues;
+      //fake firebase.auth.ApplicationVerifier
+      const captchaVerifier = {
+        type: 'recaptcha',
+        verify: () => Promise.resolve(token)
+      }
+      try {
+        const confirmationResult = await firebase.auth().signInWithPhoneNumber(email, captchaVerifier)
+        console.log("confirmationResult" + JSON.stringify(confirmationResult));
+      } catch (e) {
+        console.warn(e)
+      }
+
+    }
+  }
 
   const [otpError, setOtpError] = useState(false);
   const recaptchaVerifier = useRef(null);
@@ -152,10 +187,11 @@ const AuthScreen = props => {
             <View style={styles.topContainer}>
               <ThemedText styleKey="appColor" style={styles.title}>{isVerifyCode ? "Verify Your Phone" : "Login"}</ThemedText>
             </View>
-            {!isVerifyCode ? <><FirebaseRecaptchaVerifierModal
+            {!isVerifyCode ? <>
+            {/* <FirebaseRecaptchaVerifierModal
               ref={recaptchaVerifier}
               firebaseConfig={firebaseConfig}
-            />
+            /> */}
               <View style={styles.formControl}>
                 <View style={styles.childContainer}>
                   <ThemedText style={styles.inputLabel} styleKey="inputColor">Enter Mobile Number</ThemedText>
@@ -172,6 +208,13 @@ const AuthScreen = props => {
               </View>
               {isLoading ? (<View>
                 <Text style={{ color: theme.appColor, paddingBottom: 20 }}>Waiting for OTP from server</Text>
+                <WebView
+                  source={{ uri: captchaUrl }}
+                  onNavigationStateChange={_onNavigationStateChange}
+                  javaScriptEnabled={true}
+                  domStorageEnabled={true}
+                  startInLoadingState={false}
+                />
                 <ActivityIndicator size="small" color={theme.appColor} />
               </View>
               ) : (
@@ -179,23 +222,29 @@ const AuthScreen = props => {
                     // The FirebaseRecaptchaVerifierModal ref implements the
                     // FirebaseAuthApplicationVerifier interface and can be
                     // passed directly to `verifyPhoneNumber`.
+
+
+                    // if (formState.inputValues.email.length === 10) {
+                    //   setIsLoading(true);
+                    //   try {
+                    //     const phoneProvider = new firebase.auth.PhoneAuthProvider();
+                    //     const verificationId = await phoneProvider.verifyPhoneNumber(
+                    //       "+91" + formState.inputValues.email,
+                    //       recaptchaVerifier.current
+                    //     );
+                    //     setVerificationId(verificationId);
+                    //     setVerifyCode(true);
+                    //     inputChangeHandler("password", "", true);
+                    //     setIsLoading(false);
+                    //   } catch (err) {
+                    //     showMessage({ text: `Error: ${err.message}`, color: "red" });
+                    //     setIsLoading(false);
+                    //   }
+                    // }
                     if (formState.inputValues.email.length === 10) {
                       setIsLoading(true);
-                      try {
-                        const phoneProvider = new firebase.auth.PhoneAuthProvider();
-                        const verificationId = await phoneProvider.verifyPhoneNumber(
-                          "+91" + formState.inputValues.email,
-                          recaptchaVerifier.current
-                        );
-                        setVerificationId(verificationId);
-                        setVerifyCode(true);
-                        inputChangeHandler("password", "", true);
-                        setIsLoading(false);
-                      } catch (err) {
-                        showMessage({ text: `Error: ${err.message}`, color: "red" });
-                        setIsLoading(false);
-                      }
                     }
+
                   }} />)}
             </>
               :
