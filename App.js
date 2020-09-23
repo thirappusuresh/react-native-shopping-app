@@ -1,5 +1,5 @@
 import 'react-native-gesture-handler';
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Provider } from "react-redux";
 import { AppLoading } from "expo";
 import * as Font from "expo-font";
@@ -8,6 +8,7 @@ import { store } from "./store";
 import NavigationContainer from "./navigation/NavigationContainer";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
+import { initializeFirestore } from './firestore';
 
 Icon.loadFont()
 MaterialIcon.loadFont()
@@ -37,7 +38,9 @@ fixOppoTextCutOff();
 
 export default function App() {
   const [fontLoaded, setFontLoaded] = useState(false);
-
+  useEffect(() => {
+    initializeFirestore();
+  }, []);
   if (!fontLoaded) {
     return (
       <AppLoading

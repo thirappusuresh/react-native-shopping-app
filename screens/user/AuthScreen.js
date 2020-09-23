@@ -1,22 +1,18 @@
-import React, { useCallback, useEffect, useReducer, useState, useRef } from "react";
+import React, { useCallback, useEffect, useReducer, useState } from "react";
 import {
-  Alert, WebView,
-  ActivityIndicator, StatusBar, Text, TextInput,
-  ImageBackground, ScrollView, StyleSheet, Platform, TouchableOpacity, View
+  ActivityIndicator, Alert,
+
+  ImageBackground, ScrollView, StyleSheet, Text, TextInput,
+  TouchableOpacity, View
 } from "react-native";
+import OTPTextView from 'react-native-otp-textinput';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { useDispatch, useSelector } from "react-redux";
 import RoundButton from '../../components/Base/RoundButton';
-import Input from "../../components/UI/Input";
 import ThemedText from '../../components/UI/ThemedText';
-import useConstants from '../../hooks/useConstants';
-import useLanguage from '../../hooks/useLanguage';
 import useTheme from '../../hooks/useTheme';
 import * as authActions from "../../store/actions/auth";
-import { firebase } from "../../firebase";
-import { FirebaseRecaptchaVerifierModal } from "expo-firebase-recaptcha";
-import OTPTextView from 'react-native-otp-textinput';
-import { Linking } from 'expo';
+import auth from '@react-native-firebase/auth';
 
 const FORM_INPUT_UPDATE = "FORM_INPUT_UPDATE";
 const ImagePath = require("../../images/Recraftsoppify_aap_bg_effect.png");
@@ -44,15 +40,12 @@ const formReducer = (state, action) => {
 };
 
 const AuthScreen = props => {
-  const [isSignup, setIsSignup] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState();
   const dispatch = useDispatch();
-  const constants = useConstants();
   const theme = useTheme();
-  const language = useLanguage();
   const allowedAdminMobileNumbers = useSelector(state => state.auth.allowedAdminMobileNumbers);
-  const captchaUrl = `https://rn-shopping-1e646.web.app/index.html?appurl=${Linking.makeUrl('')}`
+  const [confirm, setConfirm] = useState(null);
 
   const [formState, dispatchFormState] = useReducer(formReducer, {
     inputValues: {
@@ -72,43 +65,11 @@ const AuthScreen = props => {
     }
   }, [error]);
 
-  const authHandler = async () => {
-    let action;
-    if (isSignup) {
-      action = authActions.signup(
-        formState.inputValues.email,
-        formState.inputValues.password
-      );
-    } else {
-      action = authActions.login(
-        formState.inputValues.email,
-        formState.inputValues.password
-      );
-    }
-    setError(null);
-    setIsLoading(true);
-    try {
-      await dispatch(action);
-      if (formState.inputValues.email === "8008809708") {
-        props.navigation.navigate("Admin");
-      } else {
-        props.navigation.navigate("Shop");
-      }
-    } catch (err) {
-      setError(err.message);
-      setIsLoading(false);
-    }
-  };
-
   const verifyOtp = async () => {
     if (formState.inputValues.password.length > 5) {
       setIsLoading(true);
       try {
-        const credential = firebase.auth.PhoneAuthProvider.credential(
-          verificationId,
-          formState.inputValues.password
-        );
-        let res = await firebase.auth().signInWithCredential(credential);
+        let res = await confirm.confirm(formState.inputValues.password);
         let accessToken = await res.user.getIdToken();
         dispatch(authActions.updateLogin(res.user.uid, accessToken, formState.inputValues.email));
         if (allowedAdminMobileNumbers.includes(formState.inputValues.email)) {
@@ -135,63 +96,18 @@ const AuthScreen = props => {
     [dispatchFormState]
   );
 
-  const _onNavigationStateChange = (webViewState) => {
-    console.log(webViewState.url)
-    onPhoneComplete(webViewState.url)
-  }
-  const onPhoneComplete = async (url) => {
-    let token = null
-    console.log("ok");
-    //WebBrowser.dismissBrowser()
-    const tokenEncoded = Linking.parse(url).queryParams['token']
-    if (tokenEncoded)
-      token = decodeURIComponent(tokenEncoded)
-
-    verifyCaptchaSendSms(token);
-  }
-
-  verifyCaptchaSendSms = async (token) => {
-    if (token) {
-      const { email } = formState.inputValues;
-      //fake firebase.auth.ApplicationVerifier
-      const captchaVerifier = {
-        type: 'recaptcha',
-        verify: () => Promise.resolve(token)
-      }
-      try {
-        const confirmationResult = await firebase.auth().signInWithPhoneNumber(email, captchaVerifier)
-        console.log("confirmationResult" + JSON.stringify(confirmationResult));
-      } catch (e) {
-        console.warn(e)
-      }
-
-    }
-  }
-
   const [otpError, setOtpError] = useState(false);
-  const recaptchaVerifier = useRef(null);
-  const [phoneNumber, setPhoneNumber] = useState();
-  const [verificationId, setVerificationId] = useState();
-  const [verificationCode, setVerificationCode] = useState();
   const [isVerifyCode, setVerifyCode] = useState(false);
-  const firebaseConfig = firebase.apps.length ? firebase.app().options : undefined;
-  const [message, showMessage] = useState((!firebaseConfig || Platform.OS === 'web')
-    ? { text: "To get started, provide a valid firebase config in App.js and open this snack on an iOS or Android device." }
-    : undefined);
 
   return (
-    <View style={{ paddingTop: Platform.OS === 'android' ? StatusBar.currentHeight : 0 }}>
+    <View>
       <ImageBackground source={ImagePath} style={{ width: '100%', height: '100%' }} >
         <ScrollView keyboardDismissMode='on-drag' keyboardShouldPersistTaps='always'>
           <View style={styles.container}>
             <View style={styles.topContainer}>
-              <ThemedText styleKey="appColor" style={styles.title}>{isVerifyCode ? "Verify Your Phone" : "Login"}</ThemedText>
+              <ThemedText styleKey="appColor" style={styles.title}>{confirm ? "Verify Your Phone" : "Login"}</ThemedText>
             </View>
-            {!isVerifyCode ? <>
-            {/* <FirebaseRecaptchaVerifierModal
-              ref={recaptchaVerifier}
-              firebaseConfig={firebaseConfig}
-            /> */}
+            {!confirm ? <>
               <View style={styles.formControl}>
                 <View style={styles.childContainer}>
                   <ThemedText style={styles.inputLabel} styleKey="inputColor">Enter Mobile Number</ThemedText>
@@ -208,43 +124,16 @@ const AuthScreen = props => {
               </View>
               {isLoading ? (<View>
                 <Text style={{ color: theme.appColor, paddingBottom: 20 }}>Waiting for OTP from server</Text>
-                <WebView
-                  source={{ uri: captchaUrl }}
-                  onNavigationStateChange={_onNavigationStateChange}
-                  javaScriptEnabled={true}
-                  domStorageEnabled={true}
-                  startInLoadingState={false}
-                />
                 <ActivityIndicator size="small" color={theme.appColor} />
               </View>
               ) : (
                   <RoundButton label={"SEND OTP"} buttonStyle={{ opacity: formState.inputValues.email.length === 10 ? 1 : 0.5 }} onPress={async () => {
-                    // The FirebaseRecaptchaVerifierModal ref implements the
-                    // FirebaseAuthApplicationVerifier interface and can be
-                    // passed directly to `verifyPhoneNumber`.
-
-
-                    // if (formState.inputValues.email.length === 10) {
-                    //   setIsLoading(true);
-                    //   try {
-                    //     const phoneProvider = new firebase.auth.PhoneAuthProvider();
-                    //     const verificationId = await phoneProvider.verifyPhoneNumber(
-                    //       "+91" + formState.inputValues.email,
-                    //       recaptchaVerifier.current
-                    //     );
-                    //     setVerificationId(verificationId);
-                    //     setVerifyCode(true);
-                    //     inputChangeHandler("password", "", true);
-                    //     setIsLoading(false);
-                    //   } catch (err) {
-                    //     showMessage({ text: `Error: ${err.message}`, color: "red" });
-                    //     setIsLoading(false);
-                    //   }
-                    // }
                     if (formState.inputValues.email.length === 10) {
                       setIsLoading(true);
+                      const confirmation = await auth().signInWithPhoneNumber("+91" + formState.inputValues.email);
+                      setConfirm(confirmation);
+                      setIsLoading(false);
                     }
-
                   }} />)}
             </>
               :
@@ -261,13 +150,12 @@ const AuthScreen = props => {
                     fontSize: 16,
                     color: "black"
                   }}>{formState.inputValues.email}</Text>
-                  <TouchableOpacity style={{ marginLeft: 10 }} onPress={() => setVerifyCode(false)}>
+                  <TouchableOpacity style={{ marginLeft: 10 }} onPress={() => setConfirm(false)}>
                     <MaterialIcon name="pencil" size={20} color={theme.appColor} />
                   </TouchableOpacity>
                 </View>
                 <View style={styles.formControl}>
                   <OTPTextView
-                    ref={(e) => (this.otpInput = e)}
                     handleTextChange={(text) => inputChangeHandler("password", text, true)}
                     inputCount={6}
                     keyboardType="numeric"
@@ -290,15 +178,6 @@ const AuthScreen = props => {
               </>
             }
           </View>
-          {message ? (
-            <TouchableOpacity
-              style={[StyleSheet.absoluteFill, { backgroundColor: 0xffffffee, justifyContent: "center" }]}
-              onPress={() => showMessage(undefined)}>
-              <Text style={{ color: message.color || "blue", fontSize: 17, textAlign: "center", margin: 20, }}>
-                {message.text}
-              </Text>
-            </TouchableOpacity>
-          ) : undefined}
         </ScrollView>
       </ImageBackground >
     </View>

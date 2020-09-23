@@ -8,7 +8,7 @@ const firebaseConfig = {
   databaseURL: "https://rn-shopping-1e646.firebaseio.com",
   projectId: "rn-shopping-1e646",
   storageBucket: "rn-shopping-1e646.appspot.com",
-  appId: "1:184577136915:android:66a1f52994fc757b7fe2e6"
+  appId: "1:184577136915:android:994081b1f2b467b67fe2e6"
 };
 
 if (!firebase.apps.length) {

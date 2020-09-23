@@ -1,0 +1,69 @@
+{
+  "project_info": {
+    "project_number": "184577136915",
+    "firebase_url": "https://rn-shopping-1e646.firebaseio.com",
+    "project_id": "rn-shopping-1e646",
+    "storage_bucket": "rn-shopping-1e646.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:184577136915:android:66a1f52994fc757b7fe2e6",
+        "android_client_info": {
+          "package_name": "com.badvel.shopping"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "184577136915-bgke6t4no509fo1e2dg3nuri3shuvd8b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_fx2Adro57adkVPML9SDE6r-Hbk4OHKU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "184577136915-bgke6t4no509fo1e2dg3nuri3shuvd8b.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    },
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:184577136915:android:994081b1f2b467b67fe2e6",
+        "android_client_info": {
+          "package_name": "com.shop.badvel"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "184577136915-bgke6t4no509fo1e2dg3nuri3shuvd8b.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB_fx2Adro57adkVPML9SDE6r-Hbk4OHKU"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "184577136915-bgke6t4no509fo1e2dg3nuri3shuvd8b.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
