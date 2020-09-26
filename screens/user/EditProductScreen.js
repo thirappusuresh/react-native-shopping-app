@@ -191,7 +191,6 @@ const EditProductScreen = props => {
           initialValue={editedProduct ? editedProduct.description : ""}
           initiallyValid={!!editedProduct}
           required
-          minLength={5}
         />
         <ThemedText style={styles.inputLabel} styleKey="inputColor">Category</ThemedText>
         <Picker

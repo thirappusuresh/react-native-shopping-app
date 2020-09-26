@@ -9,8 +9,9 @@ import {
 import { Ionicons } from "@expo/vector-icons";
 import { useDispatch, useSelector } from "react-redux";
 import ThemedText from '../components/UI/ThemedText';
-
+import useTheme from '../hooks/useTheme';
 import Colors from "../constants/Colors";
+import ConfirmScreen from "../screens/shop/ConfirmScreen";
 import ProductsOverviewScreen from "../screens/shop/ProductsOverviewScreen";
 import ProductDetailScreen from "../screens/shop/ProductDetailScreen";
 import CartScreen from "../screens/shop/CartScreen";
@@ -21,7 +22,6 @@ import EditProductScreen from "../screens/user/EditProductScreen";
 import AuthScreen from "../screens/user/AuthScreen";
 import StartupScreen from "../screens/StartupScreen";
 import * as authActions from "../store/actions/auth";
-
 const defaultNavOptions = {
   headerStyle: {
     backgroundColor: Platform.OS === "android" ? Colors.primary : ""
@@ -36,7 +36,8 @@ const ProductsNavigator = createStackNavigator(
     ProductsOverview: ProductsOverviewScreen,
     ProductDetail: ProductDetailScreen,
     Cart: CartScreen,
-    Address: AddressScreen
+    Address: AddressScreen,
+    Confirm: ConfirmScreen
   },
   {
     navigationOptions: {
@@ -118,6 +119,8 @@ const DrawerNavigatorItem = ({ onPress, icon, title }) => {
 const NavigationContent = props => {
   const dispatch = useDispatch();
   const mobileNumber = useSelector(state => state.auth.mobileNumber);
+  const theme = useTheme();
+
   return (
     <View style={{ flex: 1 }}>
       <SafeAreaView forceInset={{ top: "always", horizontal: "never" }}>
@@ -195,7 +198,7 @@ const MainNavigator = createSwitchNavigator({
   Startup: StartupScreen,
   Auth: AuthNavigator,
   Shop: ShopNavigator,
-  Admin: ShopAdminNavigator
+  AdminShop: ShopAdminNavigator
 });
 
 export default createAppContainer(MainNavigator);
@@ -218,10 +221,10 @@ const styles = StyleSheet.create({
      * Icons have 0.54 opacity according to guidelines
      * 100/87 * 54 ~= 62
      */
-    opacity: 0.62,
   },
   label: {
     margin: 16,
     fontWeight: 'bold',
+    color: '#000'
   },
 });

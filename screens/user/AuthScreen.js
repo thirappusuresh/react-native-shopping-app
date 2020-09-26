@@ -13,6 +13,7 @@ import ThemedText from '../../components/UI/ThemedText';
 import useTheme from '../../hooks/useTheme';
 import * as authActions from "../../store/actions/auth";
 import auth from '@react-native-firebase/auth';
+import firebase from 'react-native-firebase';
 
 const FORM_INPUT_UPDATE = "FORM_INPUT_UPDATE";
 const ImagePath = require("../../images/Recraftsoppify_aap_bg_effect.png");
@@ -38,15 +39,20 @@ const formReducer = (state, action) => {
   }
   return state;
 };
-
+let otpInput;
 const AuthScreen = props => {
   const [isLoading, setIsLoading] = useState(false);
+  const [initializing, setInitializing] = useState(true);
   const [error, setError] = useState();
   const dispatch = useDispatch();
   const theme = useTheme();
   const allowedAdminMobileNumbers = useSelector(state => state.auth.allowedAdminMobileNumbers);
   const [confirm, setConfirm] = useState(null);
-
+  const [verification, setVerificationId] = useState();
+  const [timer, setTimer] = useState(100);
+  const [resend, setResend] = useState(false);
+  let unsubscribe;
+  let interval;
   const [formState, dispatchFormState] = useReducer(formReducer, {
     inputValues: {
       email: "",
@@ -63,25 +69,130 @@ const AuthScreen = props => {
     if (error) {
       Alert.alert("An error occurred!", error, [{ text: "Ok" }]);
     }
+    return () => {
+      unsubscribe && unsubscribe();
+    };
   }, [error]);
 
-  const verifyOtp = async () => {
-    if (formState.inputValues.password.length > 5) {
+  const verifyOtp = async (code, verifyId) => {
+    setOtpError(false);
+    let otp = code ? code : formState.inputValues.password;
+    let verificationId = verifyId ? verifyId : verification;
+    if (otp.length > 5) {
       setIsLoading(true);
       try {
-        let res = await confirm.confirm(formState.inputValues.password);
+        const credential = firebase.auth.PhoneAuthProvider.credential(verificationId, otp);
+        console.log("creds: " + credential);
+        let res = await auth().signInWithCredential(credential);
+        console.log("res: " + res);
         let accessToken = await res.user.getIdToken();
         dispatch(authActions.updateLogin(res.user.uid, accessToken, formState.inputValues.email));
         if (allowedAdminMobileNumbers.includes(formState.inputValues.email)) {
-          props.navigation.navigate("Admin");
+          props.navigation.navigate("AdminShop");
         } else {
           props.navigation.navigate("Shop");
-        } setIsLoading(false);
+        }
+        setIsLoading(false);
       } catch (err) {
         setOtpError(true);
         setIsLoading(false);
       }
     }
+  }
+
+  const verifyPhoneNumberListener = (phoneNumber) => {
+    auth()
+      .verifyPhoneNumber(phoneNumber)
+      .on('state_changed', (phoneAuthSnapshot) => {
+        // How you handle these state events is entirely up to your ui flow and whether
+        // you need to support both ios and android. In short: not all of them need to
+        // be handled - it's entirely up to you, your ui and supported platforms.
+
+        // E.g you could handle android specific events only here, and let the rest fall back
+        // to the optionalErrorCb or optionalCompleteCb functions
+        switch (phoneAuthSnapshot.state) {
+          // ------------------------
+          //  IOS AND ANDROID EVENTS
+          // ------------------------
+          case firebase.auth.PhoneAuthState.CODE_SENT: // or 'sent'
+            console.log('code sent');
+            setResend(false);
+            setVerificationId(phoneAuthSnapshot.verificationId);
+            let count = 10;
+            setTimer(count);
+            interval = setInterval(
+              () => {
+                if (count > 0) {
+                  setTimer(prevTimer => {
+                    count = prevTimer - 1;
+                    return count;
+                  });
+                } else {
+                  clearInterval(interval);
+                  setResend(true);
+                }
+              },
+              1000
+            );
+            // on ios this is the final phone auth state event you'd receive
+            // so you'd then ask for user input of the code and build a credential from it
+            // as demonstrated in the `signInWithPhoneNumber` example above
+            break;
+          case firebase.auth.PhoneAuthState.ERROR: // or 'error'
+            console.log('verification error');
+            console.log(phoneAuthSnapshot.error);
+            break;
+
+          // ---------------------
+          // ANDROID ONLY EVENTS
+          // ---------------------
+          case firebase.auth.PhoneAuthState.AUTO_VERIFY_TIMEOUT: // or 'timeout'
+            console.log('auto verify on android timed out');
+            // proceed with your manual code input flow, same as you would do in
+            // CODE_SENT if you were on IOS
+            break;
+          case firebase.auth.PhoneAuthState.AUTO_VERIFIED: // or 'verified'
+            // auto verified means the code has also been automatically confirmed as correct/received
+            // phoneAuthSnapshot.code will contain the auto verified sms code - no need to ask the user for input.
+            console.log('auto verified on android');
+            console.log(phoneAuthSnapshot);
+            clearInterval(interval);
+            setTimer(0);
+            // Example usage if handling here and not in optionalCompleteCb:
+            const { verificationId, code } = phoneAuthSnapshot;
+            setVerificationId(verificationId);
+            otpInput.setValue(code)
+            verifyOtp(code, verificationId);
+
+            // const credential = auth().PhoneAuthProvider.credential(verificationId, code);
+
+            // Do something with your new credential, e.g.:
+            // firebase.auth().signInWithCredential(credential);
+            // firebase.auth().currentUser.linkWithCredential(credential);
+            // etc ...
+            break;
+        }
+      }, (error) => {
+        // optionalErrorCb would be same logic as the ERROR case above,  if you've already handed
+        // the ERROR case in the above observer then there's no need to handle it here
+        console.log(error);
+        // verificationId is attached to error if required
+        console.log(error.verificationId);
+      }, (phoneAuthSnapshot) => {
+        // optionalCompleteCb would be same logic as the AUTO_VERIFIED/CODE_SENT switch cases above
+        // depending on the platform. If you've already handled those cases in the observer then
+        // there's absolutely no need to handle it here.
+
+        // Platform specific logic:
+        // - if this is on IOS then phoneAuthSnapshot.code will always be null
+        // - if ANDROID auto verified the sms code then phoneAuthSnapshot.code will contain the verified sms code
+        //   and there'd be no need to ask for user input of the code - proceed to credential creating logic
+        // - if ANDROID auto verify timed out then phoneAuthSnapshot.code would be null, just like ios, you'd
+        //   continue with user input logic.
+        console.log(phoneAuthSnapshot);
+      });
+    // optionally also supports .then & .catch instead of optionalErrorCb &
+    // optionalCompleteCb (with the same resulting args)
   }
 
   const inputChangeHandler = useCallback(
@@ -105,9 +216,9 @@ const AuthScreen = props => {
         <ScrollView keyboardDismissMode='on-drag' keyboardShouldPersistTaps='always'>
           <View style={styles.container}>
             <View style={styles.topContainer}>
-              <ThemedText styleKey="appColor" style={styles.title}>{confirm ? "Verify Your Phone" : "Login"}</ThemedText>
+              <ThemedText styleKey="appColor" style={styles.title}>{verification ? "Verify Your Phone" : "Login"}</ThemedText>
             </View>
-            {!confirm ? <>
+            {!verification ? <>
               <View style={styles.formControl}>
                 <View style={styles.childContainer}>
                   <ThemedText style={styles.inputLabel} styleKey="inputColor">Enter Mobile Number</ThemedText>
@@ -130,8 +241,22 @@ const AuthScreen = props => {
                   <RoundButton label={"SEND OTP"} buttonStyle={{ opacity: formState.inputValues.email.length === 10 ? 1 : 0.5 }} onPress={async () => {
                     if (formState.inputValues.email.length === 10) {
                       setIsLoading(true);
-                      const confirmation = await auth().signInWithPhoneNumber("+91" + formState.inputValues.email);
-                      setConfirm(confirmation);
+                      verifyPhoneNumberListener("+91" + formState.inputValues.email);
+                      // const confirmation = await auth().signInWithPhoneNumber("+91" + formState.inputValues.email);
+                      // setConfirm(confirmation);
+                      // unsubscribe = auth().onAuthStateChanged(async user => {
+                      //   if (user) {
+                      //     dispatch(authActions.updateLogin(user.uid, "access_token", formState.inputValues.email));
+                      //     unsubscribe && unsubscribe();
+                      //     if (allowedAdminMobileNumbers.includes(formState.inputValues.email)) {
+                      //       props.navigation.navigate("AdminShop");
+                      //     } else {
+                      //       props.navigation.navigate("Shop");
+                      //     }
+                      //     setIsLoading(false);
+                      //   }
+                      // });
+                      setOtpError(false);
                       setIsLoading(false);
                     }
                   }} />)}
@@ -150,12 +275,23 @@ const AuthScreen = props => {
                     fontSize: 16,
                     color: "black"
                   }}>{formState.inputValues.email}</Text>
-                  <TouchableOpacity style={{ marginLeft: 10 }} onPress={() => setConfirm(false)}>
+                  <TouchableOpacity style={{ marginLeft: 10 }} onPress={() => setVerificationId("")}>
                     <MaterialIcon name="pencil" size={20} color={theme.appColor} />
                   </TouchableOpacity>
                 </View>
+                {timer > 0 ? <View>
+                  <Text>
+                    <Text style={{ color: theme.appColor }}>{"00:" + timer + " "}</Text>waiting for OTP..</Text>
+                </View> : <></>}
+                {resend ? <TouchableOpacity onPress={() => {
+                  setResend(false);
+                  verifyPhoneNumberListener("+91" + formState.inputValues.email);
+                }}>
+                  <Text style={{ color: theme.appColor }}>Resend OTP</Text>
+                </TouchableOpacity> : <></>}
                 <View style={styles.formControl}>
                   <OTPTextView
+                    ref={e => (otpInput = e)}
                     handleTextChange={(text) => inputChangeHandler("password", text, true)}
                     inputCount={6}
                     keyboardType="numeric"
@@ -172,7 +308,7 @@ const AuthScreen = props => {
                       {otpError ? <Text style={{ color: theme.appColor, marginTop: 20 }}>Wrong OTP</Text> : undefined}
                       <RoundButton label={"VERIFY"}
                         buttonStyle={{ marginTop: 20, opacity: formState.inputValues.password.length > 5 ? 1 : 0.5 }}
-                        onPress={verifyOtp} />
+                        onPress={() => verifyOtp()} />
                     </View>
                   )}
               </>

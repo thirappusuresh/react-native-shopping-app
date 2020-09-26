@@ -30,7 +30,7 @@ const StartupScreen = props => {
       const expirationTime = expirationDate.getTime() - new Date().getTime();
       dispatch(authActions.authenticate(userId, token, mobileNumber, expirationTime));
       if(allowedAdminMobileNumbers.includes(mobileNumber)) {
-        props.navigation.navigate("Admin");
+        props.navigation.navigate("AdminShop");
       } else {
         props.navigation.navigate("Shop");
       }

@@ -92,11 +92,14 @@ const AddressScreen = props => {
       address.pincode = "516227";
       address.mobileNumber = mobileNumber;
       await dispatch(cartActions.addAddress(address));
-      await dispatch(ordersActions.addOrder(cartItems, cartTotalAmount, address));
+      await dispatch(ordersActions.addOrder(cartItems, cartTotalAmount, address, () => {
+        props.navigation.navigate("Confirm");
+        setIsLoading(false);
+      }));
     } catch (err) {
       setError(err.message);
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, [dispatch, formState]);
 
   const inputChangeHandler = useCallback(
@@ -111,13 +114,13 @@ const AddressScreen = props => {
     [dispatchFormState]
   );
 
-  if (isLoading) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={Colors.primary} />
-      </View>
-    );
-  }
+  // if (isLoading) {
+  //   return (
+  //     <View style={styles.centered}>
+  //       <ActivityIndicator size="large" color={Colors.primary} />
+  //     </View>
+  //   );
+  // }
 
   return (
     <View style={styles.mainContainer}>

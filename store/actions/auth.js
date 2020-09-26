@@ -1,6 +1,7 @@
 import { AsyncStorage } from "react-native";
 
 import Env from "../../constants/Environment";
+import auth from '@react-native-firebase/auth';
 
 // export const SIGNUP = "SIGNUP";
 // export const LOGIN = "LOGIN";
@@ -35,6 +36,11 @@ export const updateLogin = (userId, token, mobileNumber, expiresIn = 100000) => 
 export const logout = () => {
   clearLogoutTimer();
   AsyncStorage.removeItem("userData");
+  auth().signOut().then(function () { 
+    console.log('Signed Out'); 
+  }, function (error) { 
+    console.error('Sign Out Error', error); 
+  });
   return { type: LOGOUT };
 };
 

@@ -12,23 +12,22 @@ export const fetchProducts = () => {
     try {
       firestoreInstance()
         .collection('products')
+        .orderBy('category', 'asc')
         .onSnapshot(
           snapshot => {
             const loadedProducts = [];
-            snapshot
-              .docChanges({ includeMetadataChanges: false })
-              .forEach(element => {
-                let product = element.doc.data();
-                loadedProducts.push(new Product(
-                  element.doc.id,
-                  product.ownerId,
-                  product.title,
-                  product.imageUrl,
-                  product.description,
-                  product.price,
-                  product.category,
-                ));
-              });
+            snapshot.docs.forEach(element => {
+              let product = element.data();
+              loadedProducts.push(new Product(
+                element.id,
+                product.ownerId,
+                product.title,
+                product.imageUrl,
+                product.description,
+                product.price,
+                product.category,
+              ));
+            });
             dispatch({
               type: SET_PRODUCTS,
               products: loadedProducts,
@@ -36,7 +35,7 @@ export const fetchProducts = () => {
             });
           },
           err => {
-            throw new Error("Something went wrong!");
+            console.log("Something went wrong!");
           },
         );
     } catch (error) {
@@ -48,80 +47,66 @@ export const fetchProducts = () => {
 
 export const deleteProduct = productId => {
   return async (dispatch, getState) => {
-    const token = getState().auth.token;
-    const response = await fetch(
-      `${Env.url}products/${productId}.json?auth=${token}`, // add your own API url
-      {
-        method: "DELETE"
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error("Something went wrong!");
-    }
-
-    dispatch({
-      type: DELETE_PRODUCT,
-      pid: productId
-    });
+    firestoreInstance()
+      .collection('products')
+      .doc(productId)
+      .delete()
+      .then(async snapshot => {
+        // dispatch({
+        //   type: DELETE_PRODUCT,
+        //   pid: productId
+        // });
+      })
+      .catch(err => {
+        throw new Error("Something went wrong!");
+      });
   };
 };
+
 export const createProduct = (title, description, imageUrl, price, category) => {
   return async (dispatch, getState) => {
-    // any async code wanted
-    const token = getState().auth.token;
     const userId = getState().auth.userId;
-    const response = await fetch(
-      `${Env.url}products.json?auth=${token}`, // add your own API url
-      {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          title,
-          description,
-          imageUrl,
-          price,
-          category,
-          ownerId: userId
-        })
-      }
-    );
-    const resData = await response.json();
-
-    dispatch({
-      type: CREATE_PRODUCT,
-      productData: {
-        id: resData.name,
-        title,
-        description,
-        imageUrl,
-        price,
-        category,
-        ownerId: userId
-      }
-    });
+    const request = {
+      title,
+      description,
+      imageUrl,
+      price,
+      category,
+      ownerId: userId
+    };
+    firestoreInstance()
+      .collection('products')
+      .add(request)
+      .then(async snapshot => {
+        if (snapshot.id) {
+          request.id = snapshot.id;
+          // dispatch({
+          //   type: CREATE_PRODUCT,
+          //   productData: request
+          // });
+        }
+      })
+      .catch(err => {
+        throw new Error("Something went wrong!");
+      });
   };
 };
 export const updateProduct = (id, title, description, imageUrl, price, category) => {
   return async (dispatch, getState) => {
-    const token = getState().auth.token;
-    const response = await fetch(
-      `${Env.url}products/${id}.json?auth=${token}`, // add your own API url
-      {
-        method: "PATCH",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ title, description, imageUrl, price, category })
-      }
-    );
-
-    if (!response.ok) {
-      throw new Error("Something went wrong!");
-    }
-
-    dispatch({
-      type: UPDATE_PRODUCT,
-      pid: id,
-      productData: { title, description, imageUrl, price, category }
-    });
+    const request = { title, description, imageUrl, price, category };
+    firestoreInstance()
+      .collection('products')
+      .doc(id)
+      .set(request, { merge: true })
+      .then(async snapshot => {
+        // dispatch({
+        //   type: UPDATE_PRODUCT,
+        //   pid: id,
+        //   productData: request
+        // });
+      })
+      .catch(err => {
+        throw new Error("Something went wrong!");
+      });
   };
 };
