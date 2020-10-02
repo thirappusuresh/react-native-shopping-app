@@ -3,13 +3,15 @@ import React, { useState, useEffect } from "react";
 import { Provider } from "react-redux";
 import { AppLoading } from "expo";
 import * as Font from "expo-font";
-import { Platform, Text } from 'react-native';
+import { Alert, Platform, Text, ToastAndroid } from 'react-native';
 import { store } from "./store";
 import NavigationContainer from "./navigation/NavigationContainer";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { initializeFirestore } from './firestore';
 import SplashScreen from 'react-native-splash-screen';
+import messaging from '@react-native-firebase/messaging';
+
 Icon.loadFont()
 MaterialIcon.loadFont()
 
@@ -41,6 +43,12 @@ export default function App() {
   useEffect(() => {
     initializeFirestore();
     SplashScreen.hide();
+    const unsubscribe = messaging().onMessage(async remoteMessage => {
+      const notification = remoteMessage && remoteMessage.notification;
+      ToastAndroid.show(notification.body, ToastAndroid.LONG);
+    });
+
+    return unsubscribe;
   }, []);
   if (!fontLoaded) {
     return (

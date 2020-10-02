@@ -1,6 +1,7 @@
 import Env from "../../constants/Environment";
 import Order from "../../models/order";
 import firestoreInstance from '../../firestore';
+import * as notificationsService from "../services/notifications";
 
 export const ADD_ORDER = "ADD_ORDER";
 export const SET_ORDERS = "SET_ORDERS";
@@ -83,6 +84,7 @@ export const addOrder = (cartItems, totalAmount, address, cb) => {
             type: CLEAR_CART
           });
           cb && cb();
+          notificationsService.sendPushNotification();
         }
       })
       .catch(err => {

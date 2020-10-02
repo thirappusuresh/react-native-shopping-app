@@ -14,6 +14,7 @@ import useTheme from '../../hooks/useTheme';
 import * as authActions from "../../store/actions/auth";
 import auth from '@react-native-firebase/auth';
 import firebase from '@react-native-firebase/app';
+import messaging from '@react-native-firebase/messaging';
 
 const FORM_INPUT_UPDATE = "FORM_INPUT_UPDATE";
 const ImagePath = require("../../images/Recraftsoppify_aap_bg_effect.png");
@@ -88,8 +89,14 @@ const AuthScreen = props => {
         let accessToken = await res.user.getIdToken();
         dispatch(authActions.updateLogin(res.user.uid, accessToken, formState.inputValues.email));
         if (allowedAdminMobileNumbers.includes(formState.inputValues.email)) {
+          messaging()
+            .subscribeToTopic('admins')
+            .then(() => console.log('Subscribed to topic!'));
           props.navigation.navigate("AdminShop");
         } else {
+          messaging()
+            .unsubscribeFromTopic('admins')
+            .then(() => console.log('Unsubscribed fom the topic!'));
           props.navigation.navigate("Shop");
         }
         setIsLoading(false);
