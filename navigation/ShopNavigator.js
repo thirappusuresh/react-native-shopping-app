@@ -1,5 +1,5 @@
 import React from "react";
-import { Platform, SafeAreaView, Button, View, Linking, StyleSheet, TouchableNativeFeedback, Text } from "react-native";
+import { Platform, SafeAreaView, Button, View, Linking, StyleSheet, TouchableNativeFeedback, Text, StatusBar} from "react-native";
 import { createAppContainer, createSwitchNavigator } from "react-navigation";
 import { createStackNavigator } from "react-navigation-stack";
 import {
@@ -126,7 +126,7 @@ const NavigationContent = props => {
       <SafeAreaView forceInset={{ top: "always", horizontal: "never" }}>
         <View style={{
           backgroundColor: Colors.primary, paddingBottom: 40,
-          paddingTop: 64, paddingHorizontal: 20
+          paddingTop: 40, paddingHorizontal: 20
         }}>
           <ThemedText styleKey="highlightTextColor" style={{
             fontWeight: "bold",
@@ -141,12 +141,12 @@ const NavigationContent = props => {
         <DrawerNavigatorItems {...props} />
         <DrawerNavigatorItem icon={<Ionicons
           name={Platform.OS === "android" ? "md-call" : "ios-call"}
-          size={23} />}
+          size={23} color='grey' />}
           onPress={() => Linking.openURL(`tel:8185081363`)}
           title="Call Helpline" />
         <DrawerNavigatorItem icon={<Ionicons
           name={Platform.OS === "android" ? "md-log-out" : "ioss-log-out"}
-          size={23} />}
+          size={23} color='grey' />}
           onPress={() => dispatch(authActions.logout())}
           title="Logout" />
       </SafeAreaView>

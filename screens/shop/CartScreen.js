@@ -59,24 +59,6 @@ const CartScreen = props => {
 
   return (
     <View style={styles.screen}>
-      {/* <Card style={styles.summary}>
-        <Text style={styles.summaryText}>
-          Total:{" "}
-          <Text style={styles.amount}>
-            &#8377; {Math.round(cartTotalAmount.toFixed(2) * 100) / 100}
-          </Text>
-        </Text>
-        {isLoading ? (
-          <ActivityIndicator size="small" color={Colors.primary} />
-        ) : (
-            <Button
-              color={Colors.accent}
-              title="Order now"
-              disabled={cartItems.length === 0}
-              onPress={sendOrderHandler}
-            />
-          )}
-      </Card> */}
       <View style={{ flex: 0.9 }}>
         <FlatList
           data={cartItems}

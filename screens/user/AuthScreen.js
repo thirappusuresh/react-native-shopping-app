@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useReducer, useState } from "react";
 import {
   ActivityIndicator, Alert,
-
+  Platform, StatusBar,
   ImageBackground, ScrollView, StyleSheet, Text, TextInput,
   TouchableOpacity, View
 } from "react-native";
@@ -13,7 +13,7 @@ import ThemedText from '../../components/UI/ThemedText';
 import useTheme from '../../hooks/useTheme';
 import * as authActions from "../../store/actions/auth";
 import auth from '@react-native-firebase/auth';
-import firebase from 'react-native-firebase';
+import firebase from '@react-native-firebase/app';
 
 const FORM_INPUT_UPDATE = "FORM_INPUT_UPDATE";
 const ImagePath = require("../../images/Recraftsoppify_aap_bg_effect.png");

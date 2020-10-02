@@ -79,6 +79,8 @@ const UserProductsScreen = props => {
             amount={itemData.item.totalAmount}
             date={itemData.item.readableDate}
             item={itemData.item.items}
+            address={itemData.item.address}
+            isAdmin={true}
           />
         )}
       />

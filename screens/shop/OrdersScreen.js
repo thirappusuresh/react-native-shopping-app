@@ -53,6 +53,7 @@ const OrdersScreen = props => {
           amount={itemData.item.totalAmount}
           date={itemData.item.readableDate}
           item={itemData.item.items}
+          address={itemData.item.address}
         />
       )}
     />

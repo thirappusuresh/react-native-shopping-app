@@ -89,7 +89,7 @@ const ProductsOverviewScreen = props => {
   if (!isLoading && products.length === 0) {
     return (
       <View style={styles.centered}>
-        <Text>No products found. Maybe start adding some!</Text>
+        <Text>Loading..</Text>
       </View>
     );
   }
@@ -99,7 +99,7 @@ const ProductsOverviewScreen = props => {
       <FlatList
         onRefresh={loadProducts}
         refreshing={isRefreshing}
-        data={selectedCategory ? products.filter(product => product.category === selectedCategory) : products}
+        data={selectedCategory ? products && products.filter(product => product.category === selectedCategory) : products}
         columnWrapperStyle={styles.row}
         numColumns={2}
         keyExtractor={item => item.id}

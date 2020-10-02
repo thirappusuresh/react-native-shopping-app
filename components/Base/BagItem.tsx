@@ -16,7 +16,8 @@ const BagItem: React.FunctionComponent<Props> = ({
   color,
   item,
   onRemove,
-  categories
+  categories,
+  isHideRemove
 }: Props) => {
   const constants: AppConstants = useConstants();
   const theme: AppTheme = useTheme();
@@ -31,17 +32,17 @@ const BagItem: React.FunctionComponent<Props> = ({
           <View style={[style.container, { paddingRight: 0 }]}>
             <View style={[style.childContainer, style.leftContainer, style.extraStyle]}>
               <ThemedText styleKey="textColor" style={style.content}>{item.productTitle}</ThemedText>
-              <ThemedText styleKey="textColor" style={{color: theme.lightTextColor}}>{categories[item.productCategory]}</ThemedText>
+              <ThemedText styleKey="textColor" style={{ color: theme.lightTextColor }}>{categories[item.productCategory]}</ThemedText>
             </View>
-            <View style={[style.childContainer, style.rightContainer, { flex: 1, alignSelf: "flex-start" }]}>
+            {!isHideRemove && <View style={[style.childContainer, style.rightContainer, { flex: 1, alignSelf: "flex-start" }]}>
               <TouchableOpacity onPress={() => onRemove()}>
                 <MaterialIcon name="trash-can-outline" size={20} color={theme.lightTextColor} />
               </TouchableOpacity>
-            </View>
+            </View>}
           </View>
-          <View style={[style.container, { paddingRight: 0, flex: 1, alignSelf: "flex-end"}]}>
+          <View style={[style.container, { paddingRight: 0, flex: 1, alignSelf: "flex-end" }]}>
             <View style={[style.childContainer, style.leftContainer, { flex: 1, }]}>
-              <ThemedText styleKey="textColor" style={{color: theme.lightTextColor}}>Quantity: {item.quantity}</ThemedText>
+              <ThemedText styleKey="textColor" style={{ color: theme.lightTextColor }}>Quantity: {item.quantity}</ThemedText>
             </View>
             <View style={[style.childContainer, style.rightContainer, { flex: 1, }]}>
               <ThemedText styleKey="textColor">&#8377; {item.productPrice}</ThemedText>

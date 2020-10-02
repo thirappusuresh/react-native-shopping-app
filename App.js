@@ -9,7 +9,7 @@ import NavigationContainer from "./navigation/NavigationContainer";
 import Icon from 'react-native-vector-icons/FontAwesome';
 import MaterialIcon from 'react-native-vector-icons/MaterialCommunityIcons';
 import { initializeFirestore } from './firestore';
-
+import SplashScreen from 'react-native-splash-screen';
 Icon.loadFont()
 MaterialIcon.loadFont()
 
@@ -40,6 +40,7 @@ export default function App() {
   const [fontLoaded, setFontLoaded] = useState(false);
   useEffect(() => {
     initializeFirestore();
+    SplashScreen.hide();
   }, []);
   if (!fontLoaded) {
     return (

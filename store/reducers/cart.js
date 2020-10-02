@@ -54,7 +54,7 @@ export default (state = initialState, action) => {
           selectedCartItem.productTitle,
           selectedCartItem.sum - selectedCartItem.productPrice,
           selectedCartItem.productImage,
-          selectedCartItem.category
+          selectedCartItem.productCategory
         );
         updatedCartItems = { ...state.items, [action.pid]: updatedCartItem };
       } else {
