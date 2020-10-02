@@ -1,19 +1,12 @@
 import React from "react";
 import {
-  StyleSheet,
-  Text,
-  View,
-  ScrollView,
-  Image,
-  Button
+  ScrollView, StyleSheet,
+
+  View
 } from "react-native";
-import { useSelector, useDispatch } from "react-redux";
-import Counter from "react-native-counters";
-import Colors from "../../constants/Colors";
-import * as cartActions from "../../store/actions/cart";
-import useTheme from '../../hooks/useTheme';
 import RoundButton from '../../components/Base/RoundButton';
 import ThemedText from '../../components/UI/ThemedText';
+import useTheme from '../../hooks/useTheme';
 
 const ConfirmScreen = props => {
   const theme = useTheme();
@@ -28,6 +21,7 @@ const ConfirmScreen = props => {
           color={theme.appColor}
           label="View Orders"
           onPress={() => {
+            props.navigation.popToTop();
             props.navigation.navigate("Orders");
           }}
         />
@@ -35,6 +29,7 @@ const ConfirmScreen = props => {
           color={theme.appColor}
           label="Continue Shopping"
           onPress={() => {
+            props.navigation.popToTop();
             props.navigation.navigate("Shop");
           }}
         />

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FlatList,
   Button,
@@ -31,6 +31,10 @@ const UserProductsScreen = props => {
   const editProductHandler = id => {
     props.navigation.navigate("EditProduct", { productId: id });
   };
+
+  useEffect(() => {
+    props.navigation.addListener('didFocus', () => updateCategory(selectedCategory));
+  }, [dispatch]);
 
   const deleteHandler = id => {
     Alert.alert("Are you sure?", "Do you really want to delete this product?", [
@@ -73,6 +77,7 @@ const UserProductsScreen = props => {
     return (
       <FlatList
         data={orders}
+        contentContainerStyle={{ paddingBottom: 20 }}
         keyExtractor={item => item.id}
         renderItem={itemData => (
           <OrderItem
@@ -81,6 +86,8 @@ const UserProductsScreen = props => {
             item={itemData.item.items}
             address={itemData.item.address}
             isAdmin={true}
+            id={itemData.item.id}
+            status={itemData.item.status}
           />
         )}
       />

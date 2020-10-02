@@ -21,11 +21,16 @@ const OrdersScreen = props => {
   const orders = useSelector(state => state.orders.orders);
   const dispatch = useDispatch();
 
-  useEffect(() => {
-    setIsLoading(true);
+  const fetchOrders = () => {
     dispatch(ordersActions.fetchOrders()).then(() => {
       setIsLoading(false);
     });
+  }
+
+  useEffect(() => {
+    setIsLoading(true);
+    fetchOrders();
+    props.navigation.addListener('didFocus', fetchOrders);
   }, [dispatch]);
 
   if (isLoading) {
@@ -47,6 +52,7 @@ const OrdersScreen = props => {
   return (
     <FlatList
       data={orders}
+      contentContainerStyle={{ paddingBottom: 20}}
       keyExtractor={item => item.id}
       renderItem={itemData => (
         <OrderItem
@@ -54,6 +60,7 @@ const OrdersScreen = props => {
           date={itemData.item.readableDate}
           item={itemData.item.items}
           address={itemData.item.address}
+          status={itemData.item.status}
         />
       )}
     />

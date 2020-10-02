@@ -85,6 +85,12 @@ const AddressScreen = props => {
       ]);
       return;
     }
+    if (cartItems.length === 0) {
+      Alert.alert("Cart is empty!", "Please add something to cart and proceed", [
+        { text: "OK" }
+      ]);
+      return;
+    }
     setError(null);
     setIsLoading(true);
     try {

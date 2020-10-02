@@ -19,6 +19,7 @@ export const fetchOrders = (status) => {
       } else {
         query = query.where("userId", '==', userId);
       }
+      query = query.orderBy('date', 'desc');
       unsubscribeOrdersListener = query
         .onSnapshot(
           snapshot => {
@@ -83,6 +84,25 @@ export const addOrder = (cartItems, totalAmount, address, cb) => {
           });
           cb && cb();
         }
+      })
+      .catch(err => {
+        throw new Error("Something went wrong!");
+      });
+  };
+};
+
+export const updateOrder = (id, request) => {
+  return async (dispatch, getState) => {
+    firestoreInstance()
+      .collection('orders')
+      .doc(id)
+      .set(request, { merge: true })
+      .then(async snapshot => {
+        // dispatch({
+        //   type: UPDATE_PRODUCT,
+        //   pid: id,
+        //   productData: request
+        // });
       })
       .catch(err => {
         throw new Error("Something went wrong!");

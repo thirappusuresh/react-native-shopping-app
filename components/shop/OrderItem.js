@@ -1,7 +1,7 @@
 import { AntDesign } from '@expo/vector-icons';
 import React, { useState } from "react";
-import { FlatList, StyleSheet, Text, Linking, TouchableOpacity, View } from "react-native";
-import { useSelector } from "react-redux";
+import { FlatList, StyleSheet, Alert, Text, Linking, TouchableOpacity, View } from "react-native";
+import { useSelector, useDispatch } from "react-redux";
 import BagItem from '../../components/Base/BagItem';
 import Colors from "../../constants/Colors";
 import Card from "../UI/Card";
@@ -10,7 +10,22 @@ import * as ordersActions from "../../store/actions/orders";
 const OrderItem = props => {
   const [showDetails, setShowDetails] = useState(false);
   const categories = useSelector(state => state.categories.availableCategories);
-  const { address, isAdmin } = props;
+  const { address, isAdmin, id, status } = props;
+  const dispatch = useDispatch();
+
+  const updateHandler = () => {
+    Alert.alert("Are you sure?", "Do you really want to mark this order as delivered?", [
+      { text: "No", style: "default" },
+      {
+        text: "Yes",
+        style: "destructive",
+        onPress: () => {
+          dispatch(ordersActions.updateOrder(id, { status: "Delivered" }));
+        }
+      }
+    ]);
+  };
+
   return (
     <Card style={styles.orderItem}>
       <View style={styles.summary}>
@@ -30,18 +45,27 @@ const OrderItem = props => {
             style={{ marginLeft: 5, color: Colors.primary }}
           >{showDetails ? "Hide details" : "Show details"}</Text>
         </TouchableOpacity>
-        {isAdmin && <TouchableOpacity onPress={() => alert('order delivered')}>
+        {isAdmin && status === "Ordered" && <TouchableOpacity onPress={updateHandler}>
           <Text style={{ color: Colors.primary }}>Mark as delivered</Text>
         </TouchableOpacity>}
       </View>
       {showDetails && (
         <View style={styles.detailItems}>
-          <View style={[styles.summary, { marginTop: 20 }]}>
+          {!isAdmin && <View style={[styles.summary, { marginTop: 10 }]}>
+            <Text style={styles.totalAmount}>Status</Text>
+            <View style={[styles.address, { marginLeft: 32 }]}>
+              <Text style={styles.date}>{status}</Text>
+            </View>
+          </View>}
+          <View style={[styles.summary, { marginTop: 10 }]}>
             <Text style={styles.totalAmount}>Address</Text>
             <View style={styles.address}>
-              <Text style={styles.date}>{`${address.name}, ${address.doorNo}, ${address.addressLine1}, ${address.addressLine2}, `}{isAdmin ? '' : address.mobileNumber}</Text>
+              <Text style={styles.date}>{`${address.name}, ${address.doorNo}, ${address.addressLine1}, ${address.addressLine2}, `}{isAdmin ? '' : 'Phone: ' + address.mobileNumber}</Text>
               {isAdmin && <TouchableOpacity onPress={() => Linking.openURL(`tel:${address.mobileNumber}`)}>
-                <Text style={{ color: Colors.primary, marginTop: 10 }}>{address.mobileNumber}</Text>
+                <Text style={styles.date}>
+                  Phone:
+                  <Text style={{ color: Colors.primary, marginTop: 10 }}>{" " + address.mobileNumber}</Text>
+                </Text>
               </TouchableOpacity>}
             </View>
           </View>
@@ -60,7 +84,8 @@ const OrderItem = props => {
 
 const styles = StyleSheet.create({
   orderItem: {
-    margin: 20,
+    marginHorizontal: 20,
+    marginTop: 20,
     padding: 10,
     alignItems: "flex-start"
   },

@@ -116,9 +116,10 @@ const AuthScreen = props => {
           // ------------------------
           case firebase.auth.PhoneAuthState.CODE_SENT: // or 'sent'
             console.log('code sent');
+            setIsLoading(false)
             setResend(false);
             setVerificationId(phoneAuthSnapshot.verificationId);
-            let count = 10;
+            let count = 100;
             setTimer(count);
             interval = setInterval(
               () => {
@@ -176,6 +177,8 @@ const AuthScreen = props => {
         // optionalErrorCb would be same logic as the ERROR case above,  if you've already handed
         // the ERROR case in the above observer then there's no need to handle it here
         console.log(error);
+        setError(error && error.message);
+        setIsLoading(false);
         // verificationId is attached to error if required
         console.log(error.verificationId);
       }, (phoneAuthSnapshot) => {
@@ -209,7 +212,6 @@ const AuthScreen = props => {
 
   const [otpError, setOtpError] = useState(false);
   const [isVerifyCode, setVerifyCode] = useState(false);
-
   return (
     <View>
       <ImageBackground source={ImagePath} style={{ width: '100%', height: '100%' }} >
@@ -233,6 +235,7 @@ const AuthScreen = props => {
                   maxLength={10}
                 />
               </View>
+              {error ? <Text style={{ color: theme.appColor, marginTop: 20 }}>{error}</Text> : undefined}
               {isLoading ? (<View>
                 <Text style={{ color: theme.appColor, paddingBottom: 20 }}>Waiting for OTP from server</Text>
                 <ActivityIndicator size="small" color={theme.appColor} />
@@ -242,22 +245,8 @@ const AuthScreen = props => {
                     if (formState.inputValues.email.length === 10) {
                       setIsLoading(true);
                       verifyPhoneNumberListener("+91" + formState.inputValues.email);
-                      // const confirmation = await auth().signInWithPhoneNumber("+91" + formState.inputValues.email);
-                      // setConfirm(confirmation);
-                      // unsubscribe = auth().onAuthStateChanged(async user => {
-                      //   if (user) {
-                      //     dispatch(authActions.updateLogin(user.uid, "access_token", formState.inputValues.email));
-                      //     unsubscribe && unsubscribe();
-                      //     if (allowedAdminMobileNumbers.includes(formState.inputValues.email)) {
-                      //       props.navigation.navigate("AdminShop");
-                      //     } else {
-                      //       props.navigation.navigate("Shop");
-                      //     }
-                      //     setIsLoading(false);
-                      //   }
-                      // });
                       setOtpError(false);
-                      setIsLoading(false);
+                      setError("");
                     }
                   }} />)}
             </>
@@ -327,6 +316,14 @@ AuthScreen.navigationOptions = {
 const styles = StyleSheet.create({
   screen: {
     flex: 1
+  },
+  errorContainer: {
+    marginVertical: 5
+  },
+  errorText: {
+    fontFamily: "open-sans",
+    fontSize: 13,
+    color: "red"
   },
   formControl: {
     width: "100%"
