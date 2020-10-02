@@ -45,20 +45,14 @@ const OrderItem = props => {
             style={{ marginLeft: 5, color: Colors.primary }}
           >{showDetails ? "Hide details" : "Show details"}</Text>
         </TouchableOpacity>
-        {isAdmin && status === "Ordered" && <TouchableOpacity onPress={updateHandler}>
+        {isAdmin ? status === "Ordered" && <TouchableOpacity onPress={updateHandler}>
           <Text style={{ color: Colors.primary }}>Mark as delivered</Text>
-        </TouchableOpacity>}
+        </TouchableOpacity> : <Text style={{ color: Colors.primary }}>{status}</Text>}
       </View>
       {showDetails && (
         <View style={styles.detailItems}>
-          {!isAdmin && <View style={[styles.summary, { marginTop: 10 }]}>
-            <Text style={styles.totalAmount}>Status</Text>
-            <View style={[styles.address, { marginLeft: 32 }]}>
-              <Text style={styles.date}>{status}</Text>
-            </View>
-          </View>}
           <View style={[styles.summary, { marginTop: 10 }]}>
-            <Text style={styles.totalAmount}>Address</Text>
+            <Text style={styles.totalAmount}>Address:</Text>
             <View style={styles.address}>
               <Text style={styles.date}>{`${address.name}, ${address.doorNo}, ${address.addressLine1}, ${address.addressLine2}, `}{isAdmin ? '' : 'Phone: ' + address.mobileNumber}</Text>
               {isAdmin && <TouchableOpacity onPress={() => Linking.openURL(`tel:${address.mobileNumber}`)}>
